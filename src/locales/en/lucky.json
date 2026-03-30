@@ -1,0 +1,35 @@
+{
+  "colors": {
+    "Sun": "Orange",
+    "Moon": "White",
+    "Mars": "Red",
+    "Mercury": "Green",
+    "Jupiter": "Yellow",
+    "Venus": "Pink",
+    "Saturn": "Blue",
+    "Rahu": "Smoky Gray",
+    "Ketu": "Brown"
+  },
+  "numbers": {
+    "Sun": 1,
+    "Moon": 2,
+    "Mars": 9,
+    "Mercury": 5,
+    "Jupiter": 3,
+    "Venus": 6,
+    "Saturn": 8,
+    "Rahu": 4,
+    "Ketu": 7
+  },
+  "friendships": {
+    "Sun": ["Moon", "Mars", "Jupiter"],
+    "Moon": ["Sun", "Mercury"],
+    "Mars": ["Sun", "Moon", "Jupiter"],
+    "Mercury": ["Sun", "Venus"],
+    "Jupiter": ["Sun", "Moon", "Mars"],
+    "Venus": ["Mercury", "Saturn"],
+    "Saturn": ["Mercury", "Venus", "Rahu"],
+    "Rahu": ["Saturn", "Venus"],
+    "Ketu": ["Mars", "Jupiter"]
+  }
+}

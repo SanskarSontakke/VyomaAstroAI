@@ -1,0 +1,47 @@
+{
+  "1": {
+    "name": "Janma",
+    "favorable": false,
+    "description": "Indicates the 'Birth' star. It brings emphasis on self-realization but can also cause mental restlessness. Proceed with caution on major new projects."
+  },
+  "2": {
+    "name": "Sampat",
+    "favorable": true,
+    "description": "The star of 'Wealth'. Highly auspicious for financial investments, business deals, and general prosperity. Success is likely in most endeavors."
+  },
+  "3": {
+    "name": "Vipat",
+    "favorable": false,
+    "description": "The 'Danger' star. Obstacles and sudden troubles may arise. It is advisable to avoid risky activities and postpone important decisions today."
+  },
+  "4": {
+    "name": "Kshema",
+    "favorable": true,
+    "description": "Indicates 'Well-being' and safety. A supportive day for domestic life, recovery, and activities requiring security and steady growth."
+  },
+  "5": {
+    "name": "Pratyak",
+    "favorable": false,
+    "description": "The 'Counter-productive' star. Despite efforts, results may be delayed or opposed. Stay patient and avoid confrontations."
+  },
+  "6": {
+    "name": "Sadhaka",
+    "favorable": true,
+    "description": "The star of 'Achievement'. Extremely favorable for reaching goals, completing tasks, and starting ventures where success is desired."
+  },
+  "7": {
+    "name": "Vadha",
+    "favorable": false,
+    "description": "The 'Lethal' star. Considered the most unfavorable Tara. Avoid undertaking critical transitions or high-stakes activities as failures are prone to happen."
+  },
+  "8": {
+    "name": "Mitra",
+    "favorable": true,
+    "description": "The star of 'Friendship'. Brings support from acquaintances and harmony in relationships. A good day for meetings and social collaboration."
+  },
+  "9": {
+    "name": "Ati-Mitra",
+    "favorable": true,
+    "description": "The star of 'Deep Friendship'. Exceptionally auspicious for strengthening bonds, seeking favors, and long-term partnerships."
+  }
+}

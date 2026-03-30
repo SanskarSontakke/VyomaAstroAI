@@ -1,0 +1,62 @@
+{
+  "house_1": {
+    "title": "Self-Assertion",
+    "description": "Renewed energy and self-confidence. Focus on your identity and how you relate to the world.",
+    "favorable": false
+  },
+  "house_2": {
+    "title": "Resource Management",
+    "description": "A time for evaluating finances and family values. Financial growth may require effort.",
+    "favorable": false
+  },
+  "house_3": {
+    "title": "Courage and Initiatives",
+    "description": "Sun shines brightly here. Success through siblings, travels, and powerful expression.",
+    "favorable": true
+  },
+  "house_4": {
+    "title": "Inner Foundation",
+    "description": "Focus on domestic security and emotional roots. May bring concern for home and family matters.",
+    "favorable": false
+  },
+  "house_5": {
+    "title": "Procreative Power",
+    "description": "Joy through children and creative projects. A time for passionate self-expression and learning.",
+    "favorable": false
+  },
+  "house_6": {
+    "title": "Triumph Over Adversaries",
+    "description": "Powerful period for health and victory in disputes. Excellent for streamlining work and routines.",
+    "favorable": true
+  },
+  "house_7": {
+    "title": "Relational Harmony",
+    "description": "Spotlight on marriage and partnerships. Diplomacy is needed to navigate relationships effectively.",
+    "favorable": false
+  },
+  "house_8": {
+    "title": "Deep Introspection",
+    "description": "Intense transformations and focus on legacy. A time for exploring deeper psychological depths.",
+    "favorable": false
+  },
+  "house_9": {
+    "title": "Spiritual Expansion",
+    "description": "Expanding knowledge through higher education, philosophy, or travel to sacred destinations.",
+    "favorable": false
+  },
+  "house_10": {
+    "title": "Career Apex",
+    "description": "Peak professional performance and public visibility. Your leadership skills are recognized by others.",
+    "favorable": true
+  },
+  "house_11": {
+    "title": "Social Gains",
+    "description": "Income increases and long-term goals are realized. Support comes from powerful friends and networks.",
+    "favorable": true
+  },
+  "house_12": {
+    "title": "Soul Retirement",
+    "description": "Withdrawal from social life for spiritual recharge. A time for ending cycles and releasing old habits.",
+    "favorable": false
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "house_1": {
+    "score": 4,
+    "title": "Auspicious Beginnings",
+    "description": "The Moon in the Ascendant brings mental peace and overall well-being. You may feel more enthusiastic and dynamic in your personal approach to new ventures."
+  },
+  "house_2": {
+    "score": 3,
+    "title": "Financial Awareness",
+    "description": "Focus shifts to wealth and family matters. It is a good time to stabilize your finances, though you should be mindful of impulsive speech."
+  },
+  "house_3": {
+    "score": 5,
+    "title": "Courage and Communication",
+    "description": "An excellent period for short travels and bold initiatives. You will receive support from siblings and find success in all forms of communication."
+  },
+  "house_4": {
+    "score": 2,
+    "title": "Domestic Reflectivity",
+    "description": "You may feel a bit restless regarding home and comfort. It is better to focus on inner peace rather than major external changes at this time."
+  },
+  "house_5": {
+    "score": 3,
+    "title": "Creative Pulse",
+    "description": "A time for creative growth and joy through children. Intellectual pursuits and speculative activities may show moderate success."
+  },
+  "house_6": {
+    "score": 5,
+    "title": "Victory Over Obstacles",
+    "description": "Very favorable for health and overcoming challenges. Your daily routines will be efficient, and you can easily manage any pending debts or disputes."
+  },
+  "house_7": {
+    "score": 3,
+    "title": "Partnership Focus",
+    "description": "Interactions with spouse or business partners are highlighted. While harmony is possible, maintaining clear communication is essential for success."
+  },
+  "house_8": {
+    "score": 2,
+    "title": "Inner Transformation",
+    "description": "Sudden changes or intense emotional experiences may occur. Use this period for introspection and exploring hidden aspects of your life."
+  },
+  "house_9": {
+    "score": 3,
+    "title": "Spiritual Growth",
+    "description": "Interest in higher learning and spirituality increases. Long-distance travels or visits to religious places might provide peace and wisdom."
+  },
+  "house_10": {
+    "score": 5,
+    "title": "Professional Success",
+    "description": "The Moon here brings career advancement and public recognition. Your hard work in the professional sphere will finally be noticed and appreciated."
+  },
+  "house_11": {
+    "score": 5,
+    "title": "Fulfilment of Desires",
+    "description": "A highly rewarding period for social gains. Expect support from friends and the successful completion of long-held aspirations."
+  },
+  "house_12": {
+    "score": 2,
+    "title": "Solitude and Reflection",
+    "description": "Increased expenditures or feelings of isolation may occur. Focus on meditation and let go of unnecessary burdens to find inner peace."
+  }
+}
