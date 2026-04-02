@@ -4,37 +4,37 @@ import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfiles, useAstroData } from '../hooks/useAstro';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { 
+  RefreshCw, 
+  ChevronRight, 
+  Star, 
+  Clock, 
+  Zap, 
+  Circle,
+  Settings as SettingsIcon,
+  Plus as PlusIcon
+} from 'lucide-react';
 
-import {
-  AppBar, Toolbar, Container, Card, CardContent,
-  Chip, Divider, IconButton, Typography, Box, Stack,
-  Tabs, Tab, Button, Paper
-} from '@mui/material';
-import Grid from '@mui/material/Grid';
-
-import LogoutIcon from '@mui/icons-material/Logout';
-import TimelineIcon from '@mui/icons-material/Timeline';
 import { motion } from 'framer-motion';
-import {
-  PageTransition, FadeUp, GlowPulse, SlideIn, StaggerParent, StaggerChild
+import { 
+  PageTransition, FadeUp, SlideIn, StaggerParent, StaggerChild 
 } from '../lib/animations';
 import { useToast } from '../lib/ToastContext';
 import { log } from '../lib/logger';
-import { SectionError } from '../components/SectionError';
+import { Layout } from '../components/Shared/Layout';
+import { Card } from '../components/Shared/Card';
 import { DashboardSkeleton } from '../components/SkeletonLoaders';
-import ProfileCard from '../components/ProfileCard';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
+import { SectionError } from '../components/SectionError';
+import { useTitle } from '../hooks/useTitle';
 
 export default function Dashboard() {
+  useTitle('Dashboard');
   const [user, setUser] = useState(null);
   const { activeProfile, setActiveProfile, loading: profileContextLoading } = useProfile();
   const navigate = useNavigate();
   const toast = useToast();
   const queryClient = useQueryClient();
 
-  // 1. Auth Sync
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -44,7 +44,6 @@ export default function Dashboard() {
     checkUser();
   }, [navigate]);
 
-  // 2. Caching - Profiles
   const { 
     data: profiles = [], 
     isLoading: profilesLoading,
@@ -52,7 +51,6 @@ export default function Dashboard() {
     error: profilesError 
   } = useProfiles(user?.id);
 
-  // 3. Caching - Astronomical Data
   const {
     data: insights,
     isLoading: astroLoading,
@@ -68,9 +66,9 @@ export default function Dashboard() {
 
   if (profilesLoading || profileContextLoading || !user) {
     return (
-      <Container maxWidth="md" sx={{ py: 6, pb: 16 }}>
+      <Layout>
         <DashboardSkeleton />
-      </Container>
+      </Layout>
     );
   }
 
@@ -78,260 +76,282 @@ export default function Dashboard() {
   const isSyncing = profilesRefetching || astroRefetching;
 
   return (
-    <>
+    <Layout>
       <PageTransition>
-        <AppBar position="sticky" elevation={0} sx={{ borderBottom: '1px solid #1a1a1a', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)' }}>
-          <Toolbar sx={{ justifyContent: 'space-between' }}>
-
-          <Typography variant="overline" sx={{ letterSpacing: '0.15em', fontWeight: 600, color: '#ededed' }}>
-            VYOMA
-          </Typography>
-
-          <Box display="flex" alignItems="center" gap={3}>
-            <IconButton 
-              size="small" 
-              onClick={handleRefresh}
-              disabled={isSyncing}
-              sx={{ 
-                color: 'text.secondary', 
-                animation: isSyncing ? 'spin 2s linear infinite' : 'none',
-                '@keyframes spin': {
-                  '0%': { transform: 'rotate(0deg)' },
-                  '100%': { transform: 'rotate(360deg)' }
-                }
-              }}
-            >
-              <RefreshIcon fontSize="small" />
-            </IconButton>
-
-            <Typography variant="caption" sx={{ display: { xs: 'none', md: 'block' }, color: 'text.secondary', textTransform: 'none' }}>
-               {user?.email}
-             </Typography>
-
-            <IconButton 
-              size="small" 
-              onClick={() => navigate('/settings')}
-              sx={{ color: 'text.secondary' }}
-            >
-              <SettingsIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="md" sx={{ py: 6, pb: 16 }}>
-        {/* Profile Selection - Boxed & Big */}
-        <Box mb={8}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Typography variant="overline" sx={{ color: 'text.secondary' }}>Subject Selection</Typography>
-            <Button 
-                size="small" 
-                startIcon={<AutoFixHighIcon sx={{ fontSize: 14 }} />}
-                onClick={() => navigate('/settings')}
-                sx={{ fontSize: '0.6875rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}
-            >
-                Edit Profiles
-            </Button>
-          </Box>
+        <div className="space-y-6 md:space-y-12">
           
-          <StaggerParent stagger={0.05}>
-            <Grid container spacing={2}>
+          {/* Profile Selection - Responsive Pills */}
+          <section className="flex flex-col items-center gap-3 md:gap-6">
+            <div className="flex items-center justify-between w-full">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600">Subject Selection</h2>
+              <button 
+                onClick={() => navigate('/vault')}
+                className="text-[10px] font-semibold text-blue-500 hover:text-blue-400 transition-colors uppercase tracking-widest"
+              >
+                Archive Vault
+              </button>
+            </div>
+            
+            <div className="flex flex-nowrap items-center gap-2 p-1 bg-gray-900/40 rounded-2xl border border-gray-800/40 w-full overflow-x-auto no-scrollbar scroll-smooth snap-x">
               {profiles.map((profile) => (
-                <Grid item xs={12} sm={6} key={profile.id}>
-                  <StaggerChild y={10}>
-                    <ProfileCard 
-                        profile={profile} 
-                        active={activeProfile?.id === profile.id}
-                        onSelect={() => setActiveProfile(profile)}
-                    />
-                  </StaggerChild>
-                </Grid>
+                <button
+                  key={profile.id}
+                  onClick={() => setActiveProfile(profile)}
+                  className={`
+                    px-4 md:px-6 py-2 rounded-xl text-xs font-semibold md:text-sm transition-all duration-300 whitespace-nowrap snap-start
+                    ${activeProfile?.id === profile.id 
+                      ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20' 
+                      : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'}
+                  `}
+                >
+                  {profile.name}
+                </button>
               ))}
-              {profiles.length === 0 && (
-                <Grid item xs={12}>
-                   <Button 
-                      fullWidth variant="outlined" 
-                      onClick={() => navigate('/settings')}
-                      sx={{ py: 4, borderStyle: 'dashed', borderColor: '#262626', color: 'text.secondary' }}
-                   >
-                      Add your first profile in Settings
-                   </Button>
-                </Grid>
-              )}
-            </Grid>
-          </StaggerParent>
-        </Box>
+              <button 
+                onClick={() => navigate('/vault')}
+                className="p-2 px-4 text-gray-500 hover:text-white transition-colors border-l border-gray-800/50 ml-1"
+                aria-label="Add Archive"
+              >
+                <PlusIcon size={16} />
+              </button>
+            </div>
+          </section>
 
-        {astroLoading ? (
+          {astroLoading ? (
             <DashboardSkeleton />
-        ) : errorState ? (
-          <SectionError title="Celestial Drift" detail={errorState.message} />
-        ) : insights && (
-          <Box>
-            {/* Daily Score Card (Minimal) */}
-            <FadeUp delay={0.1}>
-              <Box className="stat-block" sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 4, py: 4, minHeight: 200 }}>
-                <Box sx={{ minWidth: 140, textAlign: 'center' }}>
-                  <Typography variant="overline" color="text.secondary" sx={{ fontSize: '0.65rem' }}>Daily Score</Typography>
+          ) : errorState ? (
+            <SectionError title="Celestial Drift" detail={errorState.message} />
+          ) : insights && (
+            <StaggerParent stagger={0.1}>
+              <div className="space-y-6 md:space-y-12">
+                
+                {/* Daily Score Banner */}
+                <FadeUp>
+                  <Card className="relative overflow-hidden group p-6 md:p-10 border-blue-600/20 bg-gradient-to-br from-blue-900/10 via-[#030303] to-[#010105] hover:border-blue-600/30 transition-all duration-500">
+                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                    <div className="absolute top-0 right-0 p-4 md:p-8 opacity-5 group-hover:opacity-15 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700">
+                      <Star size={120} className="text-blue-500" />
+                    </div>
+                    <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 relative z-10">
+                      <div className="flex flex-col items-center shrink-0">
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-500/60 mb-1">Daily Score</span>
+                        <div className="relative">
+                          <span className="text-5xl md:text-8xl font-black tracking-tighter leading-none text-white">
+                            {insights.dailyOutlook.score}
+                          </span>
+                          <span className="absolute -top-1 -right-4 text-sm md:text-lg font-bold text-gray-700">/5</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 text-center md:text-left space-y-2 md:space-y-4">
+                        <h1 className="text-xl md:text-4xl font-bold tracking-tight text-white leading-tight text-balance">
+                           {insights.dailyOutlook.title}
+                        </h1>
+                        <p className="text-gray-400 leading-relaxed text-[13px] md:text-lg max-w-2xl mx-auto md:mx-0">
+                          {insights.dailyOutlook.description}
+                        </p>
+                      </div>
 
-                  <Box display="flex" alignItems="baseline" justifyContent="center">
-                    <Typography
-                      variant="h1"
-                      sx={{
-                        fontSize: '5rem',
-                        lineHeight: 1,
-                        color: insights.dailyOutlook.score >= 4 ? '#ffffff' : (insights.dailyOutlook.score >= 3 ? '#a1a1a1' : '#f87171')
-                      }}
-                    >
-                      {insights.dailyOutlook.score}
-                    </Typography>
-                    <Typography sx={{ color: 'text.disabled', ml: 0.5, fontFamily: '"Geist Mono"' }}>/5</Typography>
-                  </Box>
-                </Box>
-                <Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />
-                <Box flex={1}>
-                  <Typography variant="h4" sx={{ mb: 1, letterSpacing: '-0.02em' }}>{insights.dailyOutlook.title}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>{insights.dailyOutlook.description}</Typography>
-                </Box>
-              </Box>
-            </FadeUp>
+                      <div className="w-full md:w-auto bg-gray-900/60 p-4 rounded-2xl border border-gray-800/50 flex flex-col items-center justify-center min-w-[140px] shadow-2xl">
+                        <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">Moon Phase</span>
+                        <span className="text-base md:text-lg font-bold text-white uppercase tracking-wider">{insights.tithi.name.split(' ')[0]}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </FadeUp>
 
-            {/* Timings Grid */}
-            <Typography variant="overline" sx={{ mb: 2, display: 'block' }}>Window Availability</Typography>
-            <Grid container spacing={2} mb={6} alignItems="stretch">
-              <Grid item xs={6} md={3}>
-                <TimingBlock label="Rahu Kaal" time={`${insights.timings.rahuKaal.formattedStart} - ${insights.timings.rahuKaal.formattedEnd}`} color="#f87171" />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <TimingBlock label="Yamaghanda" time={`${insights.timings.yamaghanda.formattedStart} - ${insights.timings.yamaghanda.formattedEnd}`} color="#f87171" />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <TimingBlock label="Guli Kaal" time={`${insights.timings.guliKaal.formattedStart} - ${insights.timings.guliKaal.formattedEnd}`} color="#f87171" />
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <TimingBlock label="Abhijit" time={`${insights.timings.abhijitMuhurta.formattedStart} - ${insights.timings.abhijitMuhurta.formattedEnd}`} color="#3b82f6" />
-              </Grid>
-            </Grid>
-
-            {/* Tithi + Tara Bala */}
-            <Grid container spacing={2} mb={6} alignItems="stretch">
-              <Grid item xs={12} md={6}>
-                <Box className="stat-block" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', py: 4 }}>
-                  <Typography variant="overline">Current Tithi</Typography>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-                    <Typography variant="h5">{insights.tithi.name}</Typography>
-                    <Chip
-                      label={insights.tithi.isRikta ? 'Rikta' : 'Favorable'}
-                      size="small"
-                      className={insights.tithi.isRikta ? 'chip-warning' : 'chip-auspicious'}
+                {/* Timings Grid */}
+                <section className="space-y-4">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 px-1 text-center md:text-left">Critical Windows</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 text-center">
+                    <TimingCard 
+                      label="Rahu Kaal" 
+                      time={`${insights.timings.rahuKaal.formattedStart} - ${insights.timings.rahuKaal.formattedEnd}`} 
+                      isWarning 
                     />
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <Box className="stat-block" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', py: 4 }}>
-                  <Typography variant="overline">Tara Bala</Typography>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-                    <Typography variant="h5">{insights.taraBala.name}</Typography>
-                    <Chip
-                      label={insights.taraBala.favorable ? 'Beneficial' : 'Caution'}
-                      size="small"
-                      className={insights.taraBala.favorable ? 'chip-auspicious' : 'chip-warning'}
+                    <TimingCard 
+                      label="Yamaghanda" 
+                      time={`${insights.timings.yamaghanda.formattedStart} - ${insights.timings.yamaghanda.formattedEnd}`} 
+                      isWarning 
                     />
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
+                    <TimingCard 
+                      label="Guli Kaal" 
+                      time={`${insights.timings.guliKaal.formattedStart} - ${insights.timings.guliKaal.formattedEnd}`} 
+                      isWarning 
+                    />
+                    <TimingCard 
+                      label="Abhijit" 
+                      time={`${insights.timings.abhijitMuhurta.formattedStart} - ${insights.timings.abhijitMuhurta.formattedEnd}`} 
+                      isBeneficial 
+                    />
+                  </div>
+                </section>
 
-            {/* Lucky Strip */}
-            <Grid container spacing={2} mb={6} alignItems="stretch">
-              <Grid item xs={6}>
-                <Box className="stat-block" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', py: 4 }}>
-                  <Typography variant="overline">Lucky Color</Typography>
-                  <Box sx={{ width: 40, height: 40, borderRadius: '50%', background: getColorHex(insights.luckyColor), border: '2px solid rgba(255,255,255,0.1)', my: 2 }} />
-                  <Typography variant="body1" sx={{ fontWeight: 600 }}>{insights.luckyColor}</Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={6}>
-                <Box className="stat-block" sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100%', py: 4 }}>
-                  <Typography variant="overline">Lucky Number</Typography>
-                  <Typography variant="h1" sx={{ color: '#3b82f6', mt: 1, fontFamily: '"Geist Mono"' }}>{insights.luckyNumber}</Typography>
-                </Box>
-              </Grid>
-            </Grid>
+                {/* 5-Limb Panchang Grid */}
+                <section className="space-y-4">
+                  <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 px-1 text-center md:text-left">Daily Panchang (5 Limbs)</h2>
+                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 text-center">
+                    <PanchangCard label="Vara" value={insights.vara.name} subValue={insights.vara.lord} />
+                    <PanchangCard 
+                      label="Tithi" 
+                      value={insights.tithi.name} 
+                      subValue={insights.tithi.paksha} 
+                      status={insights.tithi.isRikta ? 'Heavy' : 'Fluid'} 
+                      isWarning={insights.tithi.isRikta}
+                    />
+                    <PanchangCard 
+                      label="Nakshatra" 
+                      value={insights.nakshatra.name} 
+                      subValue={`Lord: ${insights.nakshatra.lord}`} 
+                    />
+                    <PanchangCard 
+                      label="Yoga" 
+                      value={insights.yoga.name} 
+                      status={insights.yoga.inauspicious ? 'Avoid' : 'Good'} 
+                      isWarning={insights.yoga.inauspicious}
+                    />
+                    <PanchangCard 
+                      label="Karana" 
+                      value={insights.karana.name} 
+                      status={insights.karana.inauspicious ? 'Bhadra' : 'Favorable'} 
+                      isWarning={insights.karana.inauspicious}
+                    />
+                  </div>
+                </section>
 
+                {/* Lucky Strip - Adaptive Matrix */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <ResponsiveWidget label="Tara Bala" value={insights.taraBala.name}>
+                    <span className={insights.taraBala.favorable ? "badge-blue" : "badge-red"}>
+                      {insights.taraBala.favorable ? 'Beneficial' : 'Caution'}
+                    </span>
+                  </ResponsiveWidget>
 
-            {/* Maha Dasha */}
-            <Box className="stat-block dot-grid" sx={{ mb: 6, p: 4 }}>
-              <Grid container spacing={4} alignItems="center">
-                <Grid item xs={12} md={5}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <GlowPulse color="#3b82f6" size={8} />
-                    <Box>
-                      <Typography variant="overline">Maha Dasha</Typography>
-                      <Typography variant="h3" sx={{ mt: 0.5 }}>{insights.currentDasha.maha}</Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} md={2} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-                  <Divider orientation="vertical" flexItem sx={{ borderStyle: 'solid', borderColor: '#1a1a1a', height: 40 }} />
-                </Grid>
-                <Grid item xs={12} md={5}>
-                  <Typography variant="overline">Antar Dasha</Typography>
-                  <Typography variant="h4" sx={{ mt: 0.5 }}>{insights.currentDasha.antar}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.5 }} className="mono">
-                    Begins transition: {new Date(insights.currentDasha.antarEnds).toLocaleDateString()}
-                  </Typography>
-                </Grid>
-              </Grid>
-            </Box>
+                  <ResponsiveWidget label="Lucky Color">
+                    <div className="flex flex-col items-center gap-2">
+                       <div 
+                        className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 shadow-2xl transition-transform hover:scale-110 duration-500"
+                        style={{ backgroundColor: getColorHex(insights.luckyColor), boxShadow: `0 0 20px ${getColorHex(insights.luckyColor)}44` }}
+                       />
+                       <span className="text-xs font-bold text-white tracking-widest uppercase">{insights.luckyColor}</span>
+                    </div>
+                  </ResponsiveWidget>
 
-            {/* Monthly Theme Card */}
-            <SlideIn from="bottom" delay={0.5}>
-              <Box className="stat-block" sx={{ borderLeft: insights.monthlyTheme.favorable ? '4px solid #3b82f6' : '1px solid #1a1a1a' }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={1.5}>
-                  <Typography variant="overline">Monthly Cycle</Typography>
-                  {insights.monthlyTheme.favorable && <Chip label="Favorable" size="small" className="chip-auspicious" />}
-                </Box>
-                <Typography variant="h4" sx={{ mb: 1.5 }}>{insights.monthlyTheme.title}</Typography>
-                <Typography variant="body2" color="#a1a1a1" sx={{ maxWidth: 600 }}>{insights.monthlyTheme.description}</Typography>
-              </Box>
-            </SlideIn>
-          </Box>
-        )}
-      </Container>
+                  <ResponsiveWidget label="Lucky Number">
+                    <span className="text-6xl md:text-7xl font-black text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] mono leading-none py-2">
+                       {insights.luckyNumber}
+                    </span>
+                  </ResponsiveWidget>
+
+                  <ResponsiveWidget label="Current Phase" value={`${insights.tithi.percent.toFixed(0)}%`}>
+                     <div className="w-full h-1 bg-gray-900 rounded-full mt-1 overflow-hidden">
+                        <div className="h-full bg-blue-500 rounded-full" style={{ width: `${insights.tithi.percent}%` }} />
+                     </div>
+                  </ResponsiveWidget>
+                </div>
+
+                {/* Dasha Highlight - Vertical Stack on Mobile */}
+                <FadeUp>
+                  <Card className="border-l-4 border-l-blue-600 bg-gradient-to-r from-blue-600/5 to-transparent p-6 md:p-8">
+                    <div className="flex flex-col md:flex-row justify-between md:items-center gap-6 md:gap-12">
+                      <div className="flex items-center gap-4 md:gap-5">
+                        <div className="w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center text-blue-500 shrink-0">
+                          <Zap size={24} />
+                        </div>
+                        <div>
+                          <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Active Maha Dasha</span>
+                          <h3 className="text-xl md:text-2xl font-bold text-white">{insights.currentDasha.maha}</h3>
+                        </div>
+                      </div>
+                      
+                      <div className="h-px w-full md:w-px md:h-12 bg-gray-800" />
+
+                      <div className="flex-1">
+                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Antar Dasha Phase</span>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-1">
+                          <span className="text-lg md:text-xl font-semibold text-gray-200">{insights.currentDasha.antar}</span>
+                          <span className="text-[10px] text-gray-500 mono uppercase tracking-wider">
+                            Transitions {new Date(insights.currentDasha.antarEnds).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </FadeUp>
+
+                {/* Monthly Cycle */}
+                <SlideIn from="bottom">
+                  <div className="space-y-4">
+                    <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 px-1 text-center md:text-left">Monthly Cycle</h2>
+                    <Card className={`relative border-l-4 ${insights.monthlyTheme.favorable ? 'border-l-green-500 bg-green-500/5' : 'border-l-orange-500 bg-orange-500/5'} p-6 md:p-8`}>
+                      <div className="flex flex-col gap-3">
+                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">{insights.monthlyTheme.title}</h3>
+                            <span className={insights.monthlyTheme.favorable ? 'badge-green' : 'badge-gold'}>
+                                {insights.monthlyTheme.favorable ? 'Growth Phase' : 'Reflection'}
+                            </span>
+                         </div>
+                         <p className="text-gray-400 leading-relaxed italic text-sm md:text-base md:pr-12">"{insights.monthlyTheme.description}"</p>
+                      </div>
+                    </Card>
+                  </div>
+                </SlideIn>
+              </div>
+            </StaggerParent>
+          )}
+        </div>
       </PageTransition>
-
-      {/* Bottom Navigation Tabs */}
-      <Box sx={{
-        position: 'fixed', bottom: 0, left: 0, right: 0,
-        zIndex: 1000, background: 'rgba(0,0,0,0.9)',
-        backdropFilter: 'blur(20px)', borderTop: '1px solid #1a1a1a'
-      }}>
-        <Tabs
-          value={0}
-          centered
-          variant="fullWidth"
-          TabIndicatorProps={{ style: { top: 0, height: 1, background: '#3b82f6' } }}
-          sx={{ height: 60 }}
-        >
-          <Tab label="Dashboard" onClick={() => navigate('/dashboard')} />
-          <Tab label="Vault" onClick={() => navigate('/vault')} />
-          <Tab label="Detailed Chart" onClick={() => navigate('/chart')} />
-        </Tabs>
-      </Box>
-    </>
+    </Layout>
   );
 }
 
-function TimingBlock({ label, time, color }) {
+function ResponsiveWidget({ label, value, children }) {
   return (
-    <Box className="stat-block" sx={{ textAlign: 'center', py: 4, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-      <Typography variant="overline" sx={{ color: 'text.disabled', mb: 2, display: 'block', fontSize: '0.6rem' }}>{label}</Typography>
-      <Typography sx={{ color, fontFamily: '"Geist Mono", monospace', fontSize: '0.85rem', fontWeight: 600, letterSpacing: '0.05em' }}>
+    <Card className="flex flex-col items-center text-center gap-3 py-6 px-4">
+      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{label}</span>
+      {value && <span className="text-base md:text-lg font-bold text-white tracking-tight">{value}</span>}
+      {children}
+    </Card>
+  );
+}
+
+function TimingCard({ label, time, isWarning, isBeneficial }) {
+  return (
+    <Card className={`
+      flex flex-col items-center justify-center gap-3 py-6 text-center transition-all duration-300
+      ${isWarning ? 'bg-red-500/5 border-red-500/10 hover:border-red-500/30' : ''}
+      ${isBeneficial ? 'bg-blue-600/5 border-blue-600/10 hover:border-blue-600/30' : ''}
+    `}>
+      <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isWarning ? 'text-red-400' : (isBeneficial ? 'text-blue-400' : 'text-gray-500')}`}>
+        {label}
+      </span>
+      <span className="text-sm font-bold text-white mono tracking-tighter">
         {time}
-      </Typography>
-    </Box>
+      </span>
+      <div className="flex gap-1">
+        {[1, 2, 3].map(i => (
+          <div key={i} className={`w-1 h-1 rounded-full ${isWarning ? 'bg-red-500/30' : (isBeneficial ? 'bg-blue-500/30' : 'bg-gray-800')}`} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function PanchangCard({ label, value, subValue, status, isWarning }) {
+  return (
+    <Card className={`
+      flex flex-col items-center justify-center gap-2 py-6 text-center transition-all duration-300
+      ${isWarning ? 'bg-red-500/5 border-red-500/10 hover:border-red-500/30' : 'bg-gray-900/10 hover:border-gray-800'}
+    `}>
+      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{label}</span>
+      <span className="text-sm md:text-base font-black text-white tracking-tight leading-none px-2 uppercase">{value}</span>
+      {subValue && <span className="text-[9px] font-bold text-gray-600 uppercase tracking-tighter">{subValue}</span>}
+      {status && (
+        <span className={`text-[9px] font-bold uppercase tracking-widest mt-1 ${isWarning ? 'text-red-400' : 'text-green-500'}`}>
+          {status}
+        </span>
+      )}
+    </Card>
   );
 }
 

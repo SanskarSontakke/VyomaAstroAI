@@ -1,7 +1,7 @@
 import React from 'react';
 import { getZodiacSign, getNakshatra } from '../../lib/astro/ephemeris';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Box, Typography } from '@mui/material';
 import { motion } from 'framer-motion';
+import { StaggerParent, StaggerChild } from '../../lib/animations';
 
 const SIGN_NAMES = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
@@ -15,90 +15,90 @@ function formatDegrees(longitude) {
   return `${d}° ${m.toString().padStart(2, '0')}'`;
 }
 
-const MotionTableBody = motion.create(TableBody);
-const MotionTableRow = motion.create(TableRow);
+const PlanetTable = ({ positions, ascendant, activeMahaPlanet, mini = false }) => {
+  if (!positions || !ascendant) return null;
 
-const parentVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } }
-};
-
-const childVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-};
-
-const PlanetTable = ({ positions, ascendant, activeMahaPlanet }) => {
   const rows = [
     { name: 'Ascendant', lon: ascendant.longitude, retro: false },
     ...Object.entries(positions).map(([name, data]) => ({
       name,
       lon: data.longitude,
-      retro: data.retrograde
+      retro: data.retrograde || data.retro
     }))
   ];
 
   return (
-    <TableContainer sx={{ background: 'transparent' }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>Planet</TableCell>
-            <TableCell>Sign</TableCell>
-            <TableCell>Degrees</TableCell>
-            <TableCell>Nakshatra</TableCell>
-            <TableCell align="center">Pada</TableCell>
-            <TableCell align="center">Status</TableCell>
-          </TableRow>
-        </TableHead>
-        <MotionTableBody initial="hidden" animate="visible" variants={parentVariants}>
+    <div className="w-full overflow-x-auto custom-scrollbar">
+      <table className="w-full text-left border-collapse">
+        <thead>
+          <tr className="border-b border-gray-900">
+            <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Entity</th>
+            <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Sign</th>
+            {!mini && <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Degrees</th>}
+            <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Nakshatra</th>
+            {!mini && <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600 text-center">Pada</th>}
+            {!mini && <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-gray-600 text-center">Status</th>}
+          </tr>
+        </thead>
+        <StaggerParent stagger={0.03} component="tbody">
           {rows.map((row) => {
             const signIdx = getZodiacSign(row.lon);
             const nak = getNakshatra(row.lon);
             const isActive = row.name === activeMahaPlanet;
             
             return (
-              <MotionTableRow 
+              <StaggerChild 
                 key={row.name} 
-                variants={childVariants}
-                sx={{ 
-                  background: isActive ? 'rgba(59,130,246,0.06)' : 'transparent',
-                  '&:hover': { background: 'rgba(255,255,255,0.02)' } 
-                }}
+                component="tr"
+                y={4}
+                className={`
+                  group border-b border-gray-900/50 transition-colors
+                  ${isActive ? 'bg-blue-600/5' : 'hover:bg-white/[0.02]'}
+                `}
               >
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    {isActive && <Box sx={{ width: 4, height: 4, borderRadius: '50%', bgcolor: '#3b82f6' }} />}
-                    <Typography variant="body2" sx={{ fontWeight: isActive ? 600 : 400, color: isActive ? '#fff' : '#ededed' }}>
+                <td className="py-4 px-4">
+                  <div className="flex items-center gap-3">
+                    {isActive && <div className="w-1 h-3 bg-blue-600 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />}
+                    <span className={`text-sm font-bold uppercase tracking-tight ${isActive ? 'text-blue-500' : 'text-white'}`}>
                       {row.name}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                   <Typography variant="body2" sx={{ color: '#a1a1a1' }}>{SIGN_NAMES[signIdx]}</Typography>
-                </TableCell>
-                <TableCell>
-                   <Typography className="mono" sx={{ fontSize: '0.75rem', color: '#6b6b6b' }}>{formatDegrees(row.lon)}</Typography>
-                </TableCell>
-                <TableCell>
-                   <Typography variant="body2" sx={{ color: '#ededed' }}>{nak.name}</Typography>
-                </TableCell>
-                <TableCell align="center">
-                   <Typography className="mono" sx={{ color: '#4b4b4b' }}>{nak.pada}</Typography>
-                </TableCell>
-                <TableCell align="center">
-                  {row.retro ? (
-                    <Typography variant="caption" sx={{ color: '#f87171', fontWeight: 600 }}>RETRO</Typography>
-                  ) : (
-                    <Typography variant="caption" sx={{ color: '#2e2e2e' }}>DIRECT</Typography>
-                  )}
-                </TableCell>
-              </MotionTableRow>
+                    </span>
+                  </div>
+                </td>
+                <td className="py-4 px-4">
+                   <div className="flex flex-col">
+                      <span className="text-xs text-gray-400 font-medium">{SIGN_NAMES[signIdx]}</span>
+                   </div>
+                </td>
+                {!mini && (
+                  <td className="py-4 px-4">
+                    <span className="font-mono text-[11px] text-gray-500 group-hover:text-gray-300 transition-colors">
+                      {formatDegrees(row.lon)}
+                    </span>
+                  </td>
+                )}
+                <td className="py-4 px-4">
+                   <span className="text-xs text-gray-200 font-bold">{nak.name}</span>
+                </td>
+                {!mini && (
+                  <td className="py-4 px-4 text-center">
+                    <span className="font-mono text-[11px] text-gray-600 font-black">{nak.pada}</span>
+                  </td>
+                )}
+                {!mini && (
+                  <td className="py-4 px-4 text-center">
+                    {row.retro ? (
+                      <span className="text-[9px] font-black uppercase bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded border border-red-500/20">Retro</span>
+                    ) : (
+                      <span className="text-[9px] font-black uppercase bg-gray-800 text-gray-600 px-1.5 py-0.5 rounded">Direct</span>
+                    )}
+                  </td>
+                )}
+              </StaggerChild>
             );
           })}
-        </MotionTableBody>
-      </Table>
-    </TableContainer>
+        </StaggerParent>
+      </table>
+    </div>
   );
 };
 

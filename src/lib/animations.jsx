@@ -20,12 +20,14 @@ export function FadeUp({ children, delay = 0, duration = 0.7, y = 40 }) {
 }
 
 /* ── Stagger children on scroll ──────────────────────────── */
-export function StaggerParent({ children, stagger = 0.12, delay = 0 }) {
+export function StaggerParent({ children, stagger = 0.12, delay = 0, component = 'div', className }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-40px' });
+  const MotionComponent = motion[component] || motion.div;
   return (
-    <motion.div
+    <MotionComponent
       ref={ref}
+      className={className}
       initial="hidden"
       animate={inView ? 'visible' : 'hidden'}
       variants={{
@@ -34,21 +36,23 @@ export function StaggerParent({ children, stagger = 0.12, delay = 0 }) {
       }}
     >
       {children}
-    </motion.div>
+    </MotionComponent>
   );
 }
 
 /* ── Child variant for StaggerParent ─────────────────────── */
-export function StaggerChild({ children, y = 30 }) {
+export function StaggerChild({ children, y = 30, component = 'div', className }) {
+  const MotionComponent = motion[component] || motion.div;
   return (
-    <motion.div
+    <MotionComponent
+      className={className}
       variants={{
         hidden:  { opacity: 0, y },
         visible: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.21, 0.47, 0.32, 0.98] } },
       }}
     >
       {children}
-    </motion.div>
+    </MotionComponent>
   );
 }
 

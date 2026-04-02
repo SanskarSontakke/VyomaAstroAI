@@ -1,44 +1,29 @@
-import React from 'react';
-import { Box, Container, Typography, Button, Stack, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { PageTransition, TerminalReveal, StaggerParent, StaggerChild, GlowPulse } from '../lib/animations';
-import Grid from '@mui/material/Grid';
 import { supabase } from '../lib/supabase';
+import { 
+  Sparkles, 
+  Shield, 
+  Activity, 
+  ArrowRight,
+  Database,
+  Globe,
+  Circle
+} from 'lucide-react';
+
+import { motion } from 'framer-motion';
+import { PageTransition, WordReveal, StaggerParent, StaggerChild, FadeUp } from '../lib/animations';
+import { useTitle } from '../hooks/useTitle';
 import { useProfile } from '../lib/ProfileContext';
-
-const FeatureCard = ({ title, desc, delay }) => (
-  <StaggerChild y={20} delay={delay}>
-    <Box sx={{
-      p: 3,
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      background: '#0a0a0a',
-      border: '1px solid #1a1a1a',
-      borderRadius: '8px',
-      transition: 'all 0.3s ease',
-      cursor: 'default',
-      '&:hover': {
-        borderColor: '#3b82f6',
-        transform: 'translateX(4px)',
-        boxShadow: '0 4px 20px rgba(59,130,246,0.03)'
-      }
-    }}>
-      <Typography variant="h6" sx={{ fontWeight: 600, minWidth: '240px' }}>{title}</Typography>
-      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.6 }}>{desc}</Typography>
-    </Box>
-
-  </StaggerChild>
-);
+import { Card } from '../components/Shared/Card';
 
 export default function Landing() {
   const navigate = useNavigate();
+  useTitle('Vyoma — Celestial Precision');
   const { loading: profileLoading } = useProfile();
-  const [checking, setChecking] = React.useState(true);
+  const [checking, setChecking] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
@@ -51,104 +36,121 @@ export default function Landing() {
 
   if (checking || profileLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#000' }}>
-        <CircularProgress size={24} sx={{ color: '#3b82f6' }} />
-      </Box>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
 
   return (
     <PageTransition>
-      <Box sx={{ background: '#000', color: '#fff', minHeight: '100vh', pt: 12, pb: 16 }}>
-        <Container maxWidth="lg">
-          <SectionHeader />
+      <div className="bg-[#000] text-white min-h-screen relative overflow-hidden">
+        
+        {/* Background Atmosphere */}
+        <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-600/10 blur-[160px] rounded-full -translate-y-1/2 opacity-50" />
+        <div className="absolute bottom-0 right-1/4 w-[800px] h-[800px] bg-blue-600/5 blur-[160px] rounded-full translate-y-1/2 opacity-30" />
 
-          <Box mb={15} sx={{ textAlign: 'center' }}>
-            <TerminalReveal speed={0.03}>
-              {"High-precision Vedic astrology engine for modern observers."}
-            </TerminalReveal>
+        <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+          
+          {/* Hero Section */}
+          <section className="text-center space-y-10 py-20">
+            <FadeUp>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
+                 <Sparkles size={12} />
+                 The Next Generation of Vedic Analytics
+              </div>
+            </FadeUp>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mt={6} justifyContent="center" alignItems="center">
-
-              <Button
-                variant="contained"
-                size="large"
-                onClick={() => navigate('/login')}
-                sx={{
-                  height: 54,
-                  px: 6,
-                  background: '#fff',
-                  color: '#000',
-                  fontWeight: 600,
-                  '&:hover': { background: '#ededed' }
-                }}
-              >
-                Enter the Sky
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={() => navigate('/about')}
-                sx={{ height: 54, px: 6, borderColor: '#262626', color: '#ededed' }}
-              >
-                Architect Info
-              </Button>
-            </Stack>
-          </Box>
-
-          <StaggerParent stagger={0.1}>
-            <Grid container spacing={1.5}>
-              <Grid item xs={12}>
-                <FeatureCard
-                  title="High-Fidelity Ephemeris"
-                  desc="Calculated with sub-degree precision using the same algorithms as astronomical observatories. Zero approximation."
-                  delay={0.1}
+            <div className="space-y-6">
+              <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-white">
+                <span className="block italic font-light text-gray-500 text-4xl md:text-5xl mb-4 font-serif">The Sky is a</span> 
+                Precision <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">Instrument.</span>
+              </h1>
+              
+              <div className="max-w-2xl mx-auto">
+                <WordReveal 
+                  text="High-fidelity ephemeris calculation for modern observers. Explore your celestial code with sub-degree accuracy."
+                  className="text-lg md:text-xl text-gray-400 font-medium tracking-tight"
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <FeatureCard
-                  title="Vedic Algorithms"
-                  desc="Pure Parashari logic applied through a technical-first lens. MahaDashas, TARA, and Muhurtas with absolute accuracy."
-                  delay={0.2}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FeatureCard
-                  title="Dark Matter HUD"
-                  desc="A precision-instrument interface. Minimalist, high-contrast, and focused on clarity. No mystical distractions."
-                  delay={0.3}
-                />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
 
-          </StaggerParent>
-        </Container>
-      </Box>
+            <FadeUp delay={0.6}>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+                 <button 
+                   onClick={() => navigate('/login')}
+                   className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
+                 >
+                   Enter the Archive
+                 </button>
+                 <button 
+                    onClick={() => navigate('/about')}
+                    className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-400 font-black uppercase tracking-widest text-xs hover:text-white hover:bg-gray-800 transition-all active:scale-95"
+                 >
+                    Architect Info
+                 </button>
+              </div>
+            </FadeUp>
+          </section>
+
+          {/* Feature Grid */}
+          <section className="pt-20">
+            <StaggerParent stagger={0.1}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FeatureCard 
+                  icon={<Activity size={24} />}
+                  title="Sub-Degree Precision"
+                  desc="Calculated using real-time astronomical algorithms. No approximations, strictly Nirayana."
+                />
+                <FeatureCard 
+                  icon={<Database size={24} />}
+                  title="Local Integrity"
+                  desc="All calculations run locally on your hardware. Your celestial metrics remain private and secure."
+                />
+                <FeatureCard 
+                  icon={<Globe size={24} />}
+                  title="Universal Logic"
+                  desc="Pure Parashari principles applied through a modern editorial lens. No distractions."
+                />
+              </div>
+            </StaggerParent>
+          </section>
+
+          {/* Footer Branding */}
+          <footer className="mt-40 pt-12 border-t border-gray-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
+             <div className="flex items-center gap-3">
+                <h2 className="text-xl font-black tracking-tighter text-white">Vyoma</h2>
+                <span className="w-px h-4 bg-gray-800" />
+                <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">v1.0 Legacy Edition</span>
+             </div>
+             <div className="flex gap-8 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                <button onClick={() => navigate('/privacy')} className="hover:text-blue-500 transition-colors">Privacy Policy</button>
+                <button onClick={() => navigate('/terms')} className="hover:text-blue-500 transition-colors">Terms of Service</button>
+             </div>
+          </footer>
+        </div>
+      </div>
     </PageTransition>
   );
 }
 
-function SectionHeader() {
+function FeatureCard({ icon, title, desc }) {
   return (
-    <Box mb={6} sx={{ position: 'relative', textAlign: 'center' }}>
-      <Typography variant="overline" sx={{ letterSpacing: '0.3em', color: '#3b82f6', fontWeight: 700 }}>
-        VYOMA PRECISION v1.0
-      </Typography>
-
-      <Typography variant="h1" sx={{
-        fontSize: { xs: '3.5rem', md: '6.5rem' },
-        fontWeight: 800,
-        letterSpacing: '-0.05em',
-        lineHeight: 0.9,
-        mt: 3,
-        mb: 4,
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #666666 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-      }}>
-        The Sky is a Precision Instrument.
-      </Typography>
-    </Box>
+    <StaggerChild y={20}>
+      <Card className="h-full border-gray-900 hover:border-gray-700 hover:bg-gray-900/5 group transition-all duration-500">
+        <div className="space-y-6">
+          <div className="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-600/20 flex items-center justify-center text-blue-500 shadow-inner">
+            {icon}
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-lg font-bold text-white tracking-tight uppercase">{title}</h3>
+            <p className="text-sm text-gray-500 leading-relaxed font-medium">{desc}</p>
+          </div>
+          <div className="pt-4 flex items-center gap-2 text-[10px] font-black text-blue-500 opacity-0 group-hover:opacity-100 uppercase tracking-widest transition-opacity translate-x-[-10px] group-hover:translate-x-0">
+             Learn More <ArrowRight size={12} />
+          </div>
+        </div>
+      </Card>
+    </StaggerChild>
   );
 }
-

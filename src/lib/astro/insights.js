@@ -6,6 +6,7 @@ import {
 } from './ephemeris.js';
 
 import { log } from '../logger';
+import { parseBirthDateUTC } from '../timezones';
 
 import { 
   getRahuKaal, 
@@ -13,6 +14,7 @@ import {
   getGuliKaal, 
   getAbhijitMuhurta 
 } from './rahu.js';
+import { getFullPanchang } from './panchang.js';
 
 
 import gocharMoonData from '../../locales/en/gochar_moon.json';
@@ -50,7 +52,8 @@ const TOTAL_DASHA_CYCLE = 120;
 /**
  * Helper to calculate Vimshottari Dasha
  */
-function calculateDasha(natalMoonLon, dobDate, targetDate) {
+function calculateDasha(moonData, dobDate, targetDate) {
+  const natalMoonLon = typeof moonData === 'number' ? moonData : moonData.longitude;
   const nakDegree = natalMoonLon % (360/27);
   const nakIndex = Math.floor(natalMoonLon / (360/27));
   const firstDashaIndex = nakIndex % 9;
@@ -102,43 +105,32 @@ function calculateDasha(natalMoonLon, dobDate, targetDate) {
   return { maha: mahaDasha, antar: "Unknown", antarEnds: mahaDashaEnd };
 }
 
-export function getDailyInsights(profile, today = new Date()) {
+export function getDailyInsights(profile, today = new Date(), ayanamsaSystem = 'lahiri') {
   if (!profile) throw new Error("Profile is required.");
-  const { dob_date, dob_time, latitude, longitude, timezone_offset } = profile;
+  const { dob_date, dob_time, latitude, longitude, iana_timezone } = profile;
   
   if (!dob_date || !dob_time) {
     throw new Error("Missing birth data (date or time) in profile.");
   }
 
   // 1. Calculate Birth Data
-  const timeWithSeconds = dob_time.split(':').length === 2 ? `${dob_time}:00` : dob_time;
-  const dobISO = `${dob_date}T${timeWithSeconds}Z`;
-  const birthDate = new Date(dobISO);
-
-  if (isNaN(birthDate.getTime())) {
-    throw new Error(`Invalid birth date format: ${dobISO}`);
-  }
+  const birthDate = parseBirthDateUTC(dob_date, dob_time, iana_timezone || 'Asia/Kolkata');
   
-  // Adjust for timezone offset to get UTC
-  birthDate.setMinutes(birthDate.getMinutes() - (timezone_offset * 60));
+  const natalPositions = getPlanetaryPositions(birthDate, latitude, longitude, ayanamsaSystem);
+  const natalAsc = getAscendant(birthDate, latitude, longitude, ayanamsaSystem);
   
-  const natalPositions = getPlanetaryPositions(birthDate, latitude, longitude);
-  const natalAsc = getAscendant(birthDate, latitude, longitude);
-  
-  if (!natalPositions || isNaN(natalPositions.Moon)) {
+  if (!natalPositions || isNaN(natalPositions.Moon.longitude)) {
     throw new Error("Planetary calculation failed. Check latitude/longitude coordinates.");
   }
 
-  const natalMoonSign = getZodiacSign(natalPositions.Moon);
-  const natalMoonNak = getNakshatra(natalPositions.Moon).nakshatra;
-
-
+  const natalMoonSign = getZodiacSign(natalPositions.Moon.longitude);
+  const natalMoonNak = getNakshatra(natalPositions.Moon.longitude).nakshatra;
   
   // 2. Calculate Current Transit Data
-  const currentPositions = getPlanetaryPositions(today, latitude, longitude);
-  const todayMoonSign = getZodiacSign(currentPositions.Moon);
-  const todaySunSign = getZodiacSign(currentPositions.Sun);
-  const todayNakIndex = getNakshatra(currentPositions.Moon).nakshatra;
+  const currentPositions = getPlanetaryPositions(today, latitude, longitude, ayanamsaSystem);
+  const todayMoonSign = getZodiacSign(currentPositions.Moon.longitude);
+  const todaySunSign = getZodiacSign(currentPositions.Sun.longitude);
+  const todayNakIndex = getNakshatra(currentPositions.Moon.longitude).nakshatra;
   
   // A. Daily Outlook (Chandra Gochar)
   const houseFromMoon = ((todayMoonSign - natalMoonSign + 12) % 12) + 1;
@@ -155,40 +147,17 @@ export function getDailyInsights(profile, today = new Date()) {
   if (!theme) {
     throw new Error(`Monthly theme for house ${houseFromLagna} is missing from locales.`);
   }
-
-
   
-  // C. Tithi
-  const rawTithi = (currentPositions.Moon - currentPositions.Sun + 360) % 360;
-  const tithiNumber = Math.floor(rawTithi / 12) + 1;
-  const tithiIndex = (tithiNumber - 1) % 15;
-  const isRikta = [4, 9, 14].includes(tithiNumber % 15 || 15);
-  
-  // D. Tara Bala
-  // Distance from natal nakshatra (1-based)
-  const distance = ((todayNakIndex - natalMoonNak + 27) % 27) + 1;
-  const taraResult = (distance % 9) || 9;
-  const tara = taraBalaData[String(taraResult)];
-  
-  if (!tara) {
-    log.error("Insights", `Tara lookup failed for result: ${taraResult} from distance: ${distance}`);
-  }
-
-  // E. Lucky Color + Number
-  const ascLord = RASHI_LORDS[natalAsc.sign];
-  const weekday = today.getDay(); // 0 = Sunday
-  const weekdayRuler = WEEKDAY_RULERS[weekday];
-  
-  const friends = luckyData.friendships[ascLord] || [];
-  const isFriendly = friends.includes(weekdayRuler) || ascLord === weekdayRuler;
-  
-  const luckyPlanet = isFriendly ? weekdayRuler : ascLord;
-  const luckyColor = luckyData.colors[luckyPlanet];
-  const luckyNumber = luckyData.numbers[luckyPlanet];
-  
-  // F. Dasha
   const dasha = calculateDasha(natalPositions.Moon, birthDate, today);
   
+  // G. Full Panchang
+  const panchang = getFullPanchang(today, latitude, longitude, ayanamsaSystem);
+
+  const ruler = RASHI_LORDS[todayMoonSign];
+  const luckyColor = luckyData.colors[ruler];
+  const luckyNumber = luckyData.numbers[ruler];
+  const tara = taraBalaData[((todayNakIndex - natalMoonNak + 27) % 9) + 1];
+
   return {
     dailyOutlook: {
       score: outlook.score,
@@ -202,11 +171,12 @@ export function getDailyInsights(profile, today = new Date()) {
       favorable: theme.favorable,
       houseFromLagna
     },
-    tithi: {
-      number: tithiNumber,
-      name: TITHI_NAMES[tithiIndex],
-      isRikta
-    },
+    tithi: panchang.tithi,
+    nakshatra: panchang.nakshatra,
+    yoga: panchang.yoga,
+    karana: panchang.karana,
+    upagrahas: panchang.upagrahas,
+    vara: panchang.vara,
     taraBala: {
       name: tara?.name || "Unknown",
       favorable: tara?.favorable || false,
@@ -215,13 +185,8 @@ export function getDailyInsights(profile, today = new Date()) {
     luckyColor,
     luckyNumber,
     currentDasha: dasha,
-    timings: {
-      rahuKaal: getRahuKaal(today, latitude, longitude),
-      yamaghanda: getYamaghanda(today, latitude, longitude),
-      guliKaal: getGuliKaal(today, latitude, longitude),
-      abhijitMuhurta: getAbhijitMuhurta(today, latitude, longitude)
-    }
-
+    timings: panchang.timings
   };
 }
+
 

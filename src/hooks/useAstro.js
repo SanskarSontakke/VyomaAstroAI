@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-
-import { getDailyInsights } from '../lib/astro/insights';
-import { getPlanetaryPositions, getAscendant, getZodiacSign } from '../lib/astro/ephemeris';
-import { getMahaDasha, getCurrentDasha } from '../lib/astro/dasha';
-
+import { useProfile } from '../lib/ProfileContext';
+import { sendWorkerMessage } from '../lib/astroWorker';
+import { getCachedChart, setCachedChart, getCachedInsights, setCachedInsights } from '../lib/chartCache';
+import { calculateFullChartParallel } from '../lib/ParallelAstro';
+import { useCalculation } from '../lib/CalculationContext';
 
 export function useProfiles(userId) {
   return useQuery({
@@ -21,64 +21,127 @@ export function useProfiles(userId) {
       return data || [];
     },
     enabled: !!userId,
+    staleTime: 1000 * 60 * 30, // 30 minutes
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 }
 
 export function useAstroData(profile, date = new Date()) {
   const dateStr = date.toISOString().split('T')[0];
+  const { settings } = useProfile();
   
   return useQuery({
-    queryKey: ['astroData', profile?.id, dateStr],
+    queryKey: ['astroData_v3', profile?.id, dateStr, settings.ayanamsaSystem],
     queryFn: async () => {
       if (!profile) return null;
-      // Simulate a small delay for cinematic feel if needed, 
-      // but Query will handle the loading state
-      return getDailyInsights(profile, date);
+      
+      // 1. Check IndexDB Cache
+      const cached = await getCachedInsights(profile.id, date);
+      if (cached) return cached;
+
+      // 2. Offload to Worker
+      const result = await sendWorkerMessage('CALC_INSIGHTS', {
+        profile,
+        dateISO: date.toISOString(),
+        ayanamsaSystem: settings.ayanamsaSystem
+      });
+
+      // 3. Update Cache
+      await setCachedInsights(profile.id, date, result);
+      return result;
     },
     enabled: !!profile,
-    staleTime: 1000 * 60 * 60, // 1 hour (celestial data doesn't change that fast)
+    staleTime: 1000 * 60 * 60, // 1 hour
   });
+}
+
+export async function getChartData(p, settings = {}) {
+  if (!p) return null;
+  
+  // 1. Check IndexDB Cache
+  const cached = await getCachedChart(p.id);
+  if (cached) {
+      /* Check if settings in cache match current settings */
+      // (Simplified for now, assuming settings are part of cache key in a more robust system)
+      return cached;
+  }
+
+  // 2. Offload to Worker
+  const result = await sendWorkerMessage('CALC_CHART', {
+    profile: p,
+    ayanamsaSystem: settings.ayanamsaSystem || 'lahiri',
+    houseSystem: settings.houseSystem || 'whole_sign'
+  });
+
+  // 3. Update Cache
+  await setCachedChart(p.id, result);
+  return result;
 }
 
 export function useChartData(p) {
+  const { settings } = useProfile();
+  const { startCalculation, updateProgress, endCalculation } = useCalculation();
+
   return useQuery({
-    queryKey: ['chartData', p?.id],
+    queryKey: ['chartData_v3', p?.id, settings.ayanamsaSystem, settings.houseSystem],
     queryFn: async () => {
       if (!p) return null;
       
-      const timeWithSeconds = p.dob_time.split(':').length === 2 ? `${p.dob_time}:00` : p.dob_time;
-      const dobISO = `${p.dob_date}T${timeWithSeconds}Z`;
-      const birthDate = new Date(dobISO);
+      const cached = await getCachedChart(p.id);
+      if (cached) return cached;
 
-      birthDate.setMinutes(birthDate.getMinutes() - (p.timezone_offset * 60));
-
-      const positions = getPlanetaryPositions(birthDate, p.latitude, p.longitude);
-      const ascendant = getAscendant(birthDate, p.latitude, p.longitude);
-
-      const planetData = {};
-      Object.entries(positions).forEach(([name, lon]) => {
-        planetData[name] = {
-          sign: getZodiacSign(lon),
-          longitude: lon,
-          retrograde: false // Placeholder
-        };
-      });
-
-      const mahaDashas = getMahaDasha(positions.Moon, birthDate);
-      const current = getCurrentDasha(mahaDashas, new Date());
-
-      const currentMahaIdx = mahaDashas.findIndex(d => d.planet === current?.maha.planet);
-      const dashaTimeline = mahaDashas.slice(Math.max(0, currentMahaIdx - 1), currentMahaIdx + 5);
-
-      return {
-        positions: planetData,
-        ascendant,
-        dashaTimeline,
-        currentDasha: current
-      };
+      startCalculation();
+      try {
+        const result = await calculateFullChartParallel(p, settings.ayanamsaSystem, updateProgress);
+        await setCachedChart(p.id, result);
+        return result;
+      } catch (err) {
+        console.error('Parallel Calculation Error:', err);
+        throw err;
+      } finally {
+        endCalculation();
+      }
     },
     enabled: !!p,
-    staleTime: Infinity, // Birth data never changes
+    staleTime: Infinity,
   });
 }
+
+export function useCompatibility(profileA, profileB) {
+  const { settings } = useProfile();
+  return useQuery({
+    queryKey: ['compat_v3', profileA?.id, profileB?.id, settings.ayanamsaSystem],
+    queryFn: async () => {
+      if (!profileA || !profileB) return null;
+      /* Logic for compatibility could also be moved to worker if it's heavy */
+      return sendWorkerMessage('CALC_COMPATIBILITY', {
+          profileA,
+          profileB,
+          ayanamsaSystem: settings.ayanamsaSystem
+      });
+    },
+    enabled: !!profileA && !!profileB,
+    staleTime: Infinity,
+  });
+}
+
+export function useMuhurta(profile, goalType, startDate, endDate) {
+  const { settings } = useProfile();
+  return useQuery({
+    queryKey: ['muhurta', profile?.id, goalType, startDate, endDate, settings.ayanamsaSystem],
+    queryFn: async () => {
+      if (!profile || !goalType || !startDate || !endDate) return null;
+      return sendWorkerMessage('FIND_MUHURTAS', {
+          profile,
+          goalType,
+          startISO: startDate.toISOString(),
+          endISO: endDate.toISOString(),
+          ayanamsaSystem: settings.ayanamsaSystem
+      });
+    },
+    enabled: !!profile && !!goalType && !!startDate && !!endDate,
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
 

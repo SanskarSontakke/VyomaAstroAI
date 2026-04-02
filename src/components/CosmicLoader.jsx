@@ -1,39 +1,32 @@
-import { Box, Typography } from '@mui/material';
+import React from 'react';
 import { motion } from 'framer-motion';
-
 
 export function CosmicLoader({ message = 'Reading the stars…' }) {
   return (
-    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center',
-               justifyContent:'center', gap:2.5, py:5 }}>
+    <div className="flex flex-col items-center justify-center gap-6 py-10">
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-        style={{ width:40, height:40, position:'relative' }}
+        className="relative w-10 h-10"
       >
         {[...Array(8)].map((_, i) => (
           <motion.span
             key={i}
-            animate={{ opacity: [0.15, 1, 0.15] }}
-            transition={{ duration:1.6, repeat:Infinity, delay: i * 0.2, ease:'easeInOut' }}
+            animate={{ opacity: [0.15, 1, 0.15], scale: [1, 1.5, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
+            className="absolute top-1/2 left-1/2 w-1 h-1 rounded-full bg-blue-600"
             style={{
-              position:'absolute', top:'50%', left:'50%',
-              width:3, height:3, borderRadius:'50%',
-              background:'#3b82f6',
-              transform:`rotate(${i*45}deg) translateY(-16px) translate(-50%,-50%)`,
+              transform: `rotate(${i * 45}deg) translateY(-16px) translate(-50%, -50%)`,
+              boxShadow: '0 0 8px rgba(59, 130, 246, 0.5)'
             }}
           />
         ))}
       </motion.div>
-      <Typography sx={{
-        fontFamily: '"Geist Mono", sans-serif',
-        fontSize: '0.75rem',
-        letterSpacing: '0.08em',
-        color: '#6b6b6b',
-      }}>
+      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 animate-pulse">
         {message}
-      </Typography>
-
-    </Box>
+      </span>
+    </div>
   );
 }
+
+export default CosmicLoader;

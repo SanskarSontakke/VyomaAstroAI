@@ -60,8 +60,9 @@ export function getMahaDasha(moonLongitude, birthDate) {
   // Fill the rest of the 120-year cycle
   let currentOrderIndex = (lordIndex + 1) % 9;
   
-  // Collect approx 120 years total
-  const endThreshold = currentBirthTime + (121 * MS_PER_YEAR); // A bit more than 120
+  // Collect exactly 9 additional dashas to complete the cycle once
+  // or until we cover at least 120 years.
+  const endThreshold = currentBirthTime + (119.9 * MS_PER_YEAR); 
   
   let i = 0;
   while (dashaPointer < endThreshold) {
@@ -126,6 +127,50 @@ export function getAntarDasha(mahaDasha) {
 }
 
 /**
+ * getPratyantarDasha(antarDasha)
+ * Subdivides an Antar Dasha into 9 Pratyantar Dashas.
+ */
+export function getPratyantarDasha(antarDasha) {
+  const { mahaPlanet, antarPlanet, startDate, endDate } = antarDasha;
+  const antarDurationMs = endDate.getTime() - startDate.getTime();
+  const antarLordIndex  = DASHA_ORDER.indexOf(antarPlanet);
+  
+  let pointer = startDate.getTime();
+  const result = [];
+
+  for (let i = 0; i < 9; i++) {
+    const pratyantarIndex   = (antarLordIndex + i) % 9;
+    const pratyantarPlanet  = DASHA_ORDER[pratyantarIndex];
+    const pratyantarYears   = DASHA_YEARS[pratyantarPlanet];
+    const duration = (pratyantarYears / 120) * antarDurationMs;
+    const nextEnd  = new Date(pointer + duration);
+
+    result.push({
+      mahaPlanet,
+      antarPlanet,
+      pratyantarPlanet,
+      startDate: new Date(pointer),
+      endDate:   nextEnd,
+    });
+
+    pointer = nextEnd.getTime();
+  }
+
+  return result;
+}
+
+/**
+ * getCurrentPratyantar(pratyantarArray, today)
+ * Finds the active Pratyantar from an array.
+ */
+export function getCurrentPratyantar(pratyantarArray, today = new Date()) {
+  const todayMs = today.getTime();
+  return pratyantarArray.find(p =>
+    todayMs >= p.startDate.getTime() && todayMs < p.endDate.getTime()
+  ) || null;
+}
+
+/**
  * getCurrentDasha(dashaArray, today)
  * Finds which periods are active right now.
  * 
@@ -136,16 +181,44 @@ export function getAntarDasha(mahaDasha) {
 export function getCurrentDasha(dashaArray, today = new Date()) {
   const todayMs = today.getTime();
   
-  const activeMaha = dashaArray.find(d => todayMs >= d.startDate.getTime() && todayMs < d.endDate.getTime());
+  const activeMaha = dashaArray.find(d => 
+    todayMs >= d.startDate.getTime() && todayMs < d.endDate.getTime()
+  );
   
   if (!activeMaha) return null;
   
   const antars = getAntarDasha(activeMaha);
-  const activeAntar = antars.find(a => todayMs >= a.startDate.getTime() && todayMs < a.endDate.getTime());
+  const activeAntar = antars.find(a => 
+    todayMs >= a.startDate.getTime() && todayMs < a.endDate.getTime()
+  );
+  
+  if (!activeAntar) {
+    return {
+      maha: { planet: activeMaha.planet, endDate: activeMaha.endDate },
+      antar: null,
+      pratyantar: null
+    };
+  }
+
+  const pratyantars = getPratyantarDasha(activeAntar);
+  const activePratyantar = getCurrentPratyantar(pratyantars, today);
   
   return {
-    maha: { planet: activeMaha.planet, endDate: activeMaha.endDate },
-    antar: activeAntar ? { planet: activeAntar.antarPlanet, endDate: activeAntar.endDate } : null
+    maha: {
+      planet: activeMaha.planet,
+      startDate: activeMaha.startDate,
+      endDate: activeMaha.endDate,
+    },
+    antar: {
+      planet: activeAntar.antarPlanet,
+      startDate: activeAntar.startDate,
+      endDate: activeAntar.endDate,
+    },
+    pratyantar: activePratyantar ? {
+      planet: activePratyantar.pratyantarPlanet,
+      startDate: activePratyantar.startDate,
+      endDate: activePratyantar.endDate,
+    } : null,
   };
 }
 

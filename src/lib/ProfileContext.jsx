@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { log } from './logger';
 import { supabase } from './supabase';
+import { scheduleDailyNotification } from './notifications';
 
 const ProfileContext = createContext();
 
@@ -9,6 +11,8 @@ export function ProfileProvider({ children }) {
   const [settings, setSettings] = useState({
     fontFamily: 'Geist', // 'Geist' or 'Geist Mono'
     fontSizeScale: 1.0, // Multiplier for global scaling
+    ayanamsaSystem: 'lahiri',
+    houseSystem: 'whole_sign',
   });
 
   // Load active profile and settings from localStorage on mount
@@ -20,7 +24,7 @@ export function ProfileProvider({ children }) {
         try {
           setSettings(JSON.parse(savedSettings));
         } catch (e) {
-          console.error('Failed to parse saved settings', e);
+          log.error('ProfileContext', 'Failed to parse saved settings', e);
         }
       }
 
@@ -40,6 +44,11 @@ export function ProfileProvider({ children }) {
           }
           setActiveProfile(selected);
           localStorage.setItem('activeProfileId', selected.id);
+
+          // Silent notification reschedule
+          if (localStorage.getItem('notifEnabled') === 'true') {
+            scheduleDailyNotification(selected);
+          }
         }
       }
       setLoading(false);

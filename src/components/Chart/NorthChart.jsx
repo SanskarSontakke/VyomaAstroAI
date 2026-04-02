@@ -1,5 +1,4 @@
 import React from 'react';
-import { Box } from '@mui/material';
 
 const SIGN_ABBR = ['Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi', 'Li', 'Sc', 'Sa', 'Cp', 'Aq', 'Pi'];
 const PLANET_ABBR = {
@@ -15,6 +14,8 @@ const PLANET_ABBR = {
 };
 
 const NorthChart = ({ positions, ascendantSign }) => {
+  if (!positions || ascendantSign === undefined) return null;
+
   const houseSigns = Array.from({ length: 12 }, (_, i) => (ascendantSign + i) % 12);
   const houses = houseSigns.map((signIdx, i) => ({
     houseNum: i + 1,
@@ -23,18 +24,18 @@ const NorthChart = ({ positions, ascendantSign }) => {
   }));
 
   Object.entries(positions).forEach(([name, data]) => {
-    const houseIdx = houseSigns.indexOf(data.sign);
+    if (!PLANET_ABBR[name]) return;
+    const houseIdx = houseSigns.indexOf(data.signIndex !== undefined ? data.signIndex : data.sign);
     if (houseIdx !== -1) {
       houses[houseIdx].planets.push({
         abbr: PLANET_ABBR[name],
-        retro: data.retrograde
+        retro: data.isRetrograde || data.retro
       });
     }
   });
 
   const size = 400;
   
-  // Custom layout for North Indian style
   const polygons = [
     { id: 1, pts: `200,0 100,100 200,200 300,100`, textPos: { x: 200, y: 70 } },
     { id: 2, pts: `200,0 300,100 400,0`, textPos: { x: 300, y: 35 } },
@@ -51,15 +52,12 @@ const NorthChart = ({ positions, ascendantSign }) => {
   ];
 
   return (
-    <Box display="flex" justifyContent="center">
+    <div className="flex justify-center w-full">
       <svg 
-        width={size} height={size} viewBox={`0 0 ${size} ${size}`} 
-        style={{
-          background: '#030303',
-          border: '1px solid #1a1a1a',
-          borderRadius: 4,
-          overflow: 'hidden'
-        }}
+        width={size} 
+        height={size} 
+        viewBox={`0 0 ${size} ${size}`} 
+        className="max-w-full h-auto bg-[#000] border border-gray-900 rounded-lg shadow-2xl"
       >
         {polygons.map((p, idx) => {
           const isLagna = p.id === 1;
@@ -67,28 +65,35 @@ const NorthChart = ({ positions, ascendantSign }) => {
             <g key={p.id}>
               <polygon 
                 points={p.pts} 
-                fill={isLagna ? 'rgba(59,130,246,0.03)' : '#0a0a0a'}
-                stroke={isLagna ? '#3b82f6' : '#1a1a1a'}
-                strokeWidth={isLagna ? 1.5 : 1}
+                className={`
+                  transition-colors duration-300
+                  ${isLagna ? 'fill-blue-600/5 stroke-blue-600/40 stroke-[1.5]' : 'fill-[#050505] stroke-gray-900 stroke-[1]'}
+                `}
               />
               <g transform={`translate(${p.textPos.x}, ${p.textPos.y})`}>
-                <text textAnchor="middle" dy="-5" fill="#ededed" fontSize="11px" fontWeight="600" fontFamily='"Geist Mono", monospace'>
+                <text 
+                  textAnchor="middle" 
+                  dy="-5" 
+                  className="fill-white text-[10px] font-black tracking-tighter font-mono"
+                >
                   {SIGN_ABBR[houses[idx].signIdx]}
                 </text>
-                <text textAnchor="middle" dy="8" fill="#4b4b4b" fontSize="8px" fontFamily='"Geist Mono", monospace'>
-                  H{p.id}
+                <text 
+                  textAnchor="middle" 
+                  dy="8" 
+                  className="fill-gray-700 text-[8px] font-black font-mono tracking-widest uppercase"
+                >
+                  {p.id}
                 </text>
                 <g transform="translate(0, 24)">
                   {houses[idx].planets.map((pl, pIdx) => (
                     <text 
                       key={pIdx} 
                       textAnchor="middle" 
-                      dy={pIdx * 14} 
-                      fill="#ededed"
-                      fontSize="10px"
-                      fontFamily='"Geist Mono", monospace'
+                      dy={pIdx * 12} 
+                      className={`text-[10px] font-bold font-mono ${isLagna ? 'fill-blue-500' : 'fill-gray-300'}`}
                     >
-                      {pl.abbr}{pl.retro ? '(R)' : ''}
+                      {pl.abbr}{pl.retro ? ' (R)' : ''}
                     </text>
                   ))}
                 </g>
@@ -96,9 +101,8 @@ const NorthChart = ({ positions, ascendantSign }) => {
             </g>
           );
         })}
-        {/* Main diagonals and diamonds already formed by polygons, but adding extra lines for clarity if needed */}
       </svg>
-    </Box>
+    </div>
   );
 };
 

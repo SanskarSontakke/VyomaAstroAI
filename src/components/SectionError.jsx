@@ -1,51 +1,33 @@
-import { Box, Typography, Button } from '@mui/material';
-import SyncProblemIcon from '@mui/icons-material/SyncProblem';
+import React from 'react';
+import { AlertCircle, RotateCcw } from 'lucide-react';
 
-export function SectionError({ title = 'Could not load this section', detail, onRetry }) {
+export function SectionError({ title = 'Sync Interrupted', detail, onRetry }) {
   return (
-    <Box sx={{
-      display:'flex', flexDirection:'column', alignItems:'center',
-      justifyContent:'center', gap:1.5, py:4, px:3,
-      border: '1px dashed #262626',
-      background: 'transparent',
-      borderRadius: '8px',
-    }}>
-      <SyncProblemIcon sx={{ fontSize:30, color: '#6b6b6b' }} />
-      <Typography sx={{
-        fontFamily: '"Geist Mono", sans-serif',
-        fontSize: '0.75rem',
-        letterSpacing: '0.08em',
-        color: '#6b6b6b',
-        textTransform: 'uppercase',
-      }}>
-        {title}
-      </Typography>
-      {detail && (
-        <Typography sx={{
-          fontFamily: '"Geist", sans-serif',
-          fontSize: '0.875rem',
-          color: '#4b4b4b',
-          textAlign: 'center',
-          maxWidth: 320,
-        }}>
-          {detail}
-        </Typography>
-      )}
+    <div className="flex flex-col items-center justify-center gap-4 py-8 px-6 border border-red-900/20 bg-red-900/5 rounded-2xl animate-in fade-in duration-500">
+      <div className="w-10 h-10 rounded-full bg-red-900/10 flex items-center justify-center text-red-500">
+        <AlertCircle size={20} />
+      </div>
+      
+      <div className="text-center space-y-1">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-red-500/80">
+          {title}
+        </h3>
+        {detail && (
+          <p className="text-xs text-gray-500 leading-relaxed max-w-[280px] mx-auto font-medium">
+            {detail}
+          </p>
+        )}
+      </div>
+
       {onRetry && (
-        <Button size="small" variant="outlined"
+        <button 
           onClick={onRetry}
-          sx={{
-            mt: 1,
-            fontFamily: '"Geist Mono", sans-serif',
-            fontSize: '0.6875rem',
-            letterSpacing: '0.05em',
-            color: '#3b82f6',
-            borderColor: 'rgba(59,130,246,0.2)',
-            '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.04)' },
-          }}>
-          Retry Sync
-        </Button>
+          className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600/10 border border-red-600/20 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-600 hover:text-white transition-all active:scale-95"
+        >
+          <RotateCcw size={12} />
+          Retry Sequence
+        </button>
       )}
-    </Box>
+    </div>
   );
 }

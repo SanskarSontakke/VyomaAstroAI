@@ -1,57 +1,86 @@
 import React from 'react';
-import { Box, Container, Typography, Button } from '@mui/material';
-import { PageTransition, FadeUp } from '../lib/animations';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Scale, Info, ShieldAlert, Cpu, CheckCircle } from 'lucide-react';
+import { PageTransition, FadeUp } from '../lib/animations';
+import { Layout } from '../components/Shared/Layout';
+import { Card } from '../components/Shared/Card';
+import { Badge } from '../components/Shared/Badge';
+import { useTitle } from '../hooks/useTitle';
 
 export default function Terms() {
+  useTitle('Service Mandate');
   const navigate = useNavigate();
 
+  const SECTIONS = [
+    {
+      title: 'Interpretive Governance',
+      icon: Scale,
+      content: "VyomaAstroAI functions as a digital interpretive framework for Vedic astrological coordinates. It provides celestial data and traditional insights based on established texts. The service is intended for educational, personal, and informational purposes only."
+    },
+    {
+      title: 'Precision & Algorithms',
+      icon: Cpu,
+      content: "We utilize high-precision ephemeris algorithms for all coordinate calculations. However, astrological insights are inherently subjective and interpretive. They should not substitute for critical judgment or professional counsel. You hold sole responsibility for actions taken as a result of using this interface."
+    },
+    {
+      title: 'Identity Integrity',
+      icon: ShieldAlert,
+      content: "When syncing identities via the Supabase protocol, you are responsible for maintaining the confidentiality of your access keys and for all cosmic queries executed under your authorized session."
+    },
+    {
+      title: 'System Evolution',
+      icon: CheckCircle,
+      content: "The Celestial Archive project is subject to periodic updates and refactors. We reserve the right to modify, rotate, or terminate any interface segment or calculation engine at any time without prior coordination."
+    }
+  ];
+
   return (
-    <PageTransition>
-      <Box sx={{ minHeight: '100vh', py: 8, bgcolor: '#000', color: '#fff' }}>
-        <Container maxWidth="md">
-          <Button 
-            startIcon={<ArrowBackIcon />} 
-            onClick={() => navigate(-1)}
-            sx={{ mb: 6, color: 'text.secondary', textTransform: 'none' }}
+    <Layout>
+      <PageTransition>
+        <div className="max-w-3xl mx-auto space-y-12 pb-20">
+          
+          {/* Header */}
+          <button 
+             onClick={() => navigate(-1)}
+             className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-white transition-colors"
           >
-            Go Back
-          </Button>
+             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+             Return to Archive
+          </button>
 
-          <FadeUp delay={0.1}>
-            <Box sx={{ mb: 8 }}>
-              <Typography variant="overline" sx={{ color: '#3b82f6', fontWeight: 600 }}>CRAFTED BY HAND</Typography>
-              <Typography variant="h2" sx={{ mt: 1, mb: 1.5, fontWeight: 700 }}>Terms of Service</Typography>
-              <Typography variant="subtitle1" sx={{ color: 'text.secondary' }}>Effective Date: March 30, 2026</Typography>
-            </Box>
-          </FadeUp>
+          <header className="space-y-4">
+             <div className="flex items-center gap-2">
+                <Badge variant="blue">Service Mandate</Badge>
+                <Info size={14} className="text-blue-500" />
+             </div>
+             <h1 className="text-5xl font-bold text-white tracking-tight uppercase italic font-serif">Terms of Service</h1>
+             <p className="text-gray-500 font-mono text-[10px] uppercase tracking-[0.3em] font-bold">Effective Cycle: 2026.03.30</p>
+          </header>
 
-          <FadeUp delay={0.2}>
-            <Box sx={{ p: 4, background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '12px' }}>
-              <Typography variant="h6" sx={{ mb: 2 }}>1. Nature of Service</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-                VyomaAstroAI is an interpretive tool for Vedic astrology. It provides celestial coordinate calculations and traditional astrological insights based on established texts. It is intended for informational and personal purposes only.
-              </Typography>
+          {/* Reading Layout */}
+          <div className="grid grid-cols-1 gap-6">
+             {SECTIONS.map((s, i) => {
+               const Icon = s.icon;
+               return (
+                 <FadeUp key={i} delay={i * 0.1}>
+                    <Card className="p-8 space-y-4 bg-gray-900/5 hover:bg-gray-900/10 transition-colors border-gray-900 group">
+                       <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-700 group-hover:text-blue-500 transition-colors">
+                             <Icon size={18} />
+                          </div>
+                          <h3 className="text-lg font-bold text-white uppercase tracking-tight">{s.title}</h3>
+                       </div>
+                       <p className="text-gray-400 font-medium leading-relaxed max-w-2xl pl-14">
+                          {s.content}
+                       </p>
+                    </Card>
+                 </FadeUp>
+               );
+             })}
+          </div>
 
-              <Typography variant="h6" sx={{ mb: 2 }}>2. Precision & Algorithms</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-                While we strive for high mathematical precision using modern ephemeris algorithms, astrological interpretations are inherently subjective and should not be used as the sole basis for critical decisions. Any actions taken or not taken as a result of using this app are your sole responsibility.
-              </Typography>
-
-              <Typography variant="h6" sx={{ mb: 2 }}>3. Account Security</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-                If you choose to create an account through our Supabase integration, you are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.
-              </Typography>
-
-              <Typography variant="h6" sx={{ mb: 2 }}>4. Modifications</Typography>
-              <Typography variant="body1" sx={{ mb: 4, color: 'text.secondary', lineHeight: 1.8 }}>
-                The VyomaAstroAI project is subject to updates and refinements. We reserve the right to modify or discontinue any part of the service at any time without prior notice.
-              </Typography>
-            </Box>
-          </FadeUp>
-        </Container>
-      </Box>
-    </PageTransition>
+        </div>
+      </PageTransition>
+    </Layout>
   );
 }

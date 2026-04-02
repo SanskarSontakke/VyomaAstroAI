@@ -1,16 +1,56 @@
-# React + Vite
+# Vyoma Astro AI — The Next Generation of Vedic Analytics
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Vyoma is a high-fidelity Vedic astrology platform designed for modern observers, focusing on sub-degree accuracy, premium aesthetics, and user-centric data visualization.
 
-Currently, two official plugins are available:
+## 🚀 Technology Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Core**: React 19 + Vite 8
+- **Styling**: Tailwind CSS v4 (Modern Design Tokens, Glassmorphism)
+- **Animations**: Framer Motion (Fluid transitions, Staggered loads)
+- **Backend**: Supabase (Auth, PostgreSQL, Real-time sync)
+- **Calculations**: Custom Ephemeris Engine (based on Astronomia)
+- **Data Persistence**: TanStack Query (React Query) with LocalStorage Sync
+- **PDF Export**: jsPDF + html2canvas for high-quality reports
 
-## React Compiler
+## 🌌 Key Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1.  **The Archive**: A secure vault for managing multiple planetary profiles (Identities).
+2.  **Natal Interpretation**: Comprehensive birth chart analysis using Divisional (Varga) charts (D1, D9, D10, etc.).
+3.  **Path of Time**: A temporal dasha timeline visualization for life-phase analysis.
+4.  **Muhurta Finder**: A proprietary calculation engine for isolating auspicious cosmic windows.
+5.  **Comparative Analysis**: Side-by-side chart comparison for relationship or event timing.
+6.  **Public Insights**: Secure, shareable chart links with privacy-conscious data scrubbing.
 
-## Expanding the ESLint configuration
+## 🛠️ Development & Build
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Setup
+```bash
+npm install
+```
+
+### Development
+```bash
+npm run dev
+```
+
+### Build & Preview
+```bash
+npm run build
+npm run preview
+```
+
+### Testing
+```bash
+npm test
+```
+
+## 📐 Design Philosophy
+
+Vyoma follows a **Dark-First, High-Contrast** aesthetic:
+- **Typography**: `Inter` for clarity, `Geist Mono` for technical data, and `Cinzel` for classical elegance.
+- **Color Palette**: Deep blacks (`#000000`), celestial blues, and amber accents.
+- **Interactions**: Every state change is animated to provide a tactile, high-end feel.
+
+---
+**Architected by Sanskar Sontakke**
+*Vedic System Designer & Full-Stack Architect*

@@ -1,53 +1,41 @@
-import { Box, Typography, Button } from '@mui/material';
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import React from 'react';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import PropTypes from 'prop-types';
 
 export function EmptyState({ title, subtitle, actionLabel, onAction }) {
   return (
-    <Box sx={{
-      display:'flex', flexDirection:'column', alignItems:'center',
-      justifyContent:'center', gap:1.5, py:6, px:3,
-      border: '1px dashed #1a1a1a',
-      background: 'transparent',
-      borderRadius: '8px',
-    }}>
-      <Icon sx={{ fontSize: 36, color: '#2e2e2e' }} />
-      <Typography sx={{
-        fontFamily: '"Geist", sans-serif',
-        fontSize: '0.875rem',
-        fontWeight: 500,
-        color: '#6b6b6b',
-      }}>
-        {title}
-      </Typography>
-      {subtitle && (
-        <Typography sx={{
-          fontFamily: '"Geist", sans-serif',
-          fontSize: '0.875rem',
-          color: '#4b4b4b',
-          textAlign: 'center',
-          maxWidth: 340,
-          lineHeight: 1.65,
-        }}>
-          {subtitle}
-        </Typography>
-      )}
+    <div className="flex flex-col items-center justify-center gap-4 py-12 px-6 border-2 border-dashed border-gray-900 rounded-2xl bg-gray-900/5 transition-all group hover:border-gray-800">
+      <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-gray-700 group-hover:text-blue-500 transition-colors">
+        <Sparkles size={24} />
+      </div>
+      
+      <div className="text-center space-y-2">
+        <h3 className="text-sm font-bold text-white uppercase tracking-tight">
+          {title}
+        </h3>
+        {subtitle && (
+          <p className="text-xs text-gray-500 leading-relaxed max-w-[280px] mx-auto font-medium">
+            {subtitle}
+          </p>
+        )}
+      </div>
+
       {actionLabel && (
-        <Button 
-          variant="outlined" 
-          size="small"
+        <button 
           onClick={onAction}
-          sx={{ 
-            mt: 0.5, 
-            fontFamily: '"Geist", sans-serif',
-            fontSize: '0.75rem',
-            color: '#3b82f6',
-            borderColor: '#1a2a3a',
-            textTransform: 'none',
-            '&:hover': { borderColor: '#3b82f6', background: 'rgba(59,130,246,0.04)' }
-          }}>
+          className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-400 transition-colors"
+        >
           {actionLabel}
-        </Button>
+          <ArrowRight size={14} />
+        </button>
       )}
-    </Box>
+    </div>
   );
 }
+
+EmptyState.propTypes = {
+  title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  actionLabel: PropTypes.string,
+  onAction: PropTypes.func,
+};
