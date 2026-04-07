@@ -112,7 +112,9 @@ export const CalculationProvider = ({ children }) => {
   // Automatically trigger upfront calculation for active profile
   useEffect(() => {
     if (activeProfile) {
-      calculateAll(activeProfile, settings.ayanamsaSystem, settings.houseSystem);
+      calculateAll(activeProfile, settings.ayanamsaSystem, settings.houseSystem).catch(err => {
+        console.error('Auto calculate failed:', err);
+      });
     }
   }, [activeProfile, settings.ayanamsaSystem, settings.houseSystem, calculateAll]);
 
