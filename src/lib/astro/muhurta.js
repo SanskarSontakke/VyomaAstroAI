@@ -1,5 +1,5 @@
 import { getDailyInsights } from './insights';
-import { getRahuKaal, getAbhijitMuhurta, getSunriseSunset } from './rahu';
+import { getSunriseSunset } from './rahu';
 import { getPlanetaryPositions, getZodiacSign } from './ephemeris';
 import { log } from '../logger';
 

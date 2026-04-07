@@ -1,4 +1,3 @@
-import { getZodiacSign, getPlanetaryPositions } from './ephemeris';
 
 /**
  * Shadbala (6-fold strength) Calculation

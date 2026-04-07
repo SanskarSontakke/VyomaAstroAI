@@ -97,7 +97,6 @@ export function getMahaDasha(moonLongitude, birthDate) {
  */
 export function getAntarDasha(mahaDasha) {
   const mahaPlanet = mahaDasha.planet;
-  const mahaYears = DASHA_YEARS[mahaPlanet];
   const mahaDurationMs = mahaDasha.endDate.getTime() - mahaDasha.startDate.getTime();
   
   let dashaPointer = mahaDasha.startDate.getTime();

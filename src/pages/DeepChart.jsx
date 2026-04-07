@@ -29,7 +29,7 @@ import { useTitle } from '../hooks/useTitle';
 import { ChartSkeleton } from '../components/SkeletonLoaders';
 import { getDailyInsights } from '../lib/astro/insights';
 import { getPratyantarDasha } from '../lib/astro/dasha';
-import { getKPSubLord, getKPSignificators } from '../lib/astro/kp';
+import { getKPSignificators } from '../lib/astro/kp';
 import { findNextEclipses, eclipseAffectsChart } from '../lib/astro/eclipses';
 
 import { Badge } from '../components/Shared/Badge';
@@ -39,8 +39,8 @@ export default function DeepChart() {
   const [activeVarga, setActiveVarga] = useState('D1');
   const [exporting, setExporting] = useState(false);
   const [expandAntar, setExpandAntar] = useState(false);
-  const [kpMode, setKpMode] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState('Marriage');
+  const [_kpMode, _setKpMode] = useState(false);
+  const [_selectedTopic, _setSelectedTopic] = useState('Marriage');
   const [calcMode, setCalcMode] = useState('parashari');
   const [kpTopic, setKpTopic] = useState('career');
   const { activeProfile, settings, loading: profileLoading } = useProfile();
@@ -58,7 +58,7 @@ export default function DeepChart() {
   const {
     data: astro,
     isLoading: astroLoading,
-    error: astroError
+    error: _astroError
   } = useChartData();
 
   const handleExport = async () => {

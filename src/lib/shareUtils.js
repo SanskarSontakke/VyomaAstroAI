@@ -26,7 +26,7 @@ export async function enableSharing(profile) {
   if (!profile || !profile.id) throw new Error('Invalid profile for sharing');
   
   const slug = generateSlug(profile.name);
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from('profiles')
     .update({ public_slug: slug })
     .eq('id', profile.id)

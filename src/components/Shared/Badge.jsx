@@ -9,7 +9,7 @@ export const Badge = ({ children, variant = 'blue' }) => {
   };
 
   return (
-    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border ${variants[variant] || variants.blue}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider border whitespace-nowrap ${variants[variant] || variants.blue}`}>
       {children}
     </span>
   );

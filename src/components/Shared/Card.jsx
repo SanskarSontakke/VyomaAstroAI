@@ -14,7 +14,7 @@ export const Card = ({ children, className = '', noPadding = false, onClick }) =
         rounded-xl 
         overflow-hidden
         transition-all duration-200
-        ${noPadding ? '' : 'p-6'} 
+        ${noPadding ? '' : 'p-4 sm:p-5 lg:p-6'} 
         ${onClick ? 'cursor-pointer hover:border-gray-700 active:scale-[0.99]' : ''}
         ${className}
       `}

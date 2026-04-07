@@ -54,7 +54,7 @@ export default function PublicChart() {
 
         setProfile(redactedProfile);
         setChartData(calculated);
-      } catch (err) {
+      } catch {
         setError(true);
       } finally {
         setLoading(false);

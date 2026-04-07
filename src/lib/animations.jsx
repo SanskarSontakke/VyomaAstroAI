@@ -133,7 +133,7 @@ export function WordReveal({ text, delay = 0, className }) {
 }
 
 /* ── Number count-up ──────────────────────────────────────── */
-export function CountUp({ to, duration = 1.4, decimals = 0, suffix = '' }) {
+export function CountUp({ to, duration: _duration = 1.4, decimals = 0, suffix = '' }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
   const spring = useSpring(0, { stiffness: 60, damping: 20 });

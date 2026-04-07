@@ -84,7 +84,7 @@ export default function ProfileForm({ userId, profile = null, isPrimary = false,
       } else {
         toast.error('Location Error', 'Unable to find that city. Try a larger nearby hub.');
       }
-    } catch (err) {
+    } catch {
       toast.error('Service Offline', 'Geocoding is temporarily unavailable.');
     } finally {
       setGeocoding(false);

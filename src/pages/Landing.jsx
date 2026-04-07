@@ -50,10 +50,10 @@ export default function Landing() {
         <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-blue-600/10 blur-[160px] rounded-full -translate-y-1/2 opacity-50" />
         <div className="absolute bottom-0 right-1/4 w-[800px] h-[800px] bg-blue-600/5 blur-[160px] rounded-full translate-y-1/2 opacity-30" />
 
-        <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 md:py-20 relative z-10">
           
           {/* Hero Section */}
-          <section className="text-center space-y-10 py-20">
+          <section className="text-center space-y-8 sm:space-y-10 py-10 sm:py-14 md:py-20">
             <FadeUp>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/10 border border-blue-600/20 text-blue-500 text-[10px] font-black uppercase tracking-[0.3em] mb-4">
                  <Sparkles size={12} />
@@ -62,15 +62,15 @@ export default function Landing() {
             </FadeUp>
 
             <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-white">
-                <span className="block italic font-light text-gray-500 text-4xl md:text-5xl mb-4 font-serif">The Sky is a</span> 
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95] text-white">
+                <span className="block italic font-light text-gray-500 text-2xl sm:text-3xl md:text-5xl mb-3 sm:mb-4 font-serif">The Sky is a</span>
                 Precision <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-600">Instrument.</span>
               </h1>
               
               <div className="max-w-2xl mx-auto">
                 <WordReveal 
                   text="High-fidelity ephemeris calculation for modern observers. Explore your celestial code with sub-degree accuracy."
-                  className="text-lg md:text-xl text-gray-400 font-medium tracking-tight"
+                  className="text-base sm:text-lg md:text-xl text-gray-400 font-medium tracking-tight px-2"
                 />
               </div>
             </div>
@@ -79,13 +79,13 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
                  <button 
                    onClick={() => navigate('/login')}
-                   className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
+                   className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-[11px] sm:text-xs hover:bg-gray-200 transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
                  >
                    Enter the Archive
                  </button>
                  <button 
                     onClick={() => navigate('/about')}
-                    className="w-full sm:w-auto px-10 py-5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-400 font-black uppercase tracking-widest text-xs hover:text-white hover:bg-gray-800 transition-all active:scale-95"
+                    className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 rounded-2xl bg-gray-900 border border-gray-800 text-gray-400 font-black uppercase tracking-widest text-[11px] sm:text-xs hover:text-white hover:bg-gray-800 transition-all active:scale-95"
                  >
                     Architect Info
                  </button>
@@ -94,7 +94,7 @@ export default function Landing() {
           </section>
 
           {/* Feature Grid */}
-          <section className="pt-20">
+          <section className="pt-10 sm:pt-16 md:pt-20">
             <StaggerParent stagger={0.1}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FeatureCard 
@@ -117,7 +117,7 @@ export default function Landing() {
           </section>
 
           {/* Footer Branding */}
-          <footer className="mt-40 pt-12 border-t border-gray-900/50 flex flex-col md:flex-row justify-between items-center gap-6">
+          <footer className="mt-16 sm:mt-24 md:mt-40 pt-8 sm:pt-12 border-t border-gray-900/50 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
              <div className="flex items-center gap-3">
                 <h2 className="text-xl font-black tracking-tighter text-white">Vyoma</h2>
                 <span className="w-px h-4 bg-gray-800" />

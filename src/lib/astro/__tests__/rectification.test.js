@@ -3,10 +3,10 @@ import { rectifyBirthTime } from '../rectification';
 
 // Mock dependencies as they involve heavy astronomical math
 vi.mock('../dasha', () => ({
-  getMahaDasha: (moon, birth) => [
+  getMahaDasha: (_moon, _birth) => [
     { planet: 'Jupiter', start: new Date('2010-01-01'), end: new Date('2026-01-01') }
   ],
-  getCurrentDasha: (array, date) => ({
+  getCurrentDasha: (_array, _date) => ({
     maha: { planet: 'Jupiter' },
     antar: { planet: 'Saturn' }
   })

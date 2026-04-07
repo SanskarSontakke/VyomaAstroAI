@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { 
   Settings as SettingsIcon, 
-  User as UserIcon,
   LogOut as LogOutIcon,
   Menu as MenuIcon,
   X as CloseIcon,
@@ -21,6 +20,7 @@ import {
 export const TopHeader = () => {
   const [user, setUser] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,6 +43,7 @@ export const TopHeader = () => {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setMobileMenuOpen(false);
     navigate('/');
   };
 
@@ -59,20 +60,20 @@ export const TopHeader = () => {
   return (
     <header className={`
       sticky top-0 z-[1000] w-full transition-all duration-300 transform-gpu
-      ${isScrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-lg' : 'bg-transparent py-4 md:py-5 border-b border-transparent'}
+      ${isScrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/5 py-2.5 sm:py-3 shadow-lg' : 'bg-transparent py-3 sm:py-4 md:py-5 border-b border-transparent'}
     `} style={{ backfaceVisibility: 'hidden' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-10 md:h-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8">
+        <div className="flex items-center justify-between h-10 sm:h-11 md:h-12">
           
           {/* Logo */}
-          <div 
+          <div
             className="flex items-center gap-2 cursor-pointer group shrink-0"
             onClick={() => navigate('/dashboard')}
           >
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
               <span className="text-white font-bold text-lg">V</span>
             </div>
-            <span className="text-lg md:text-xl font-bold tracking-tight text-white font-cinzel">VYOMA</span>
+            <span className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-white font-cinzel">VYOMA</span>
           </div>
 
           {/* Desktop Navigation - Hidden on Mobile */}
@@ -102,11 +103,19 @@ export const TopHeader = () => {
           <div className="flex items-center gap-2 md:gap-3">
             {user ? (
                <div className="flex items-center gap-2 md:gap-3">
-                 <button 
+                 <button
                   onClick={() => navigate('/settings')}
                   className="p-2 md:p-2.5 rounded-full border border-gray-800 text-gray-400 hover:text-white hover:border-gray-700 transition-colors"
+                  aria-label="Open settings"
                  >
                    <SettingsIcon size={18} />
+                 </button>
+                 <button
+                  onClick={() => setMobileMenuOpen((s) => !s)}
+                  className="sm:hidden p-2 rounded-full border border-gray-800 text-gray-400 hover:text-white hover:border-gray-700 transition-colors"
+                  aria-label="Toggle navigation menu"
+                 >
+                   {mobileMenuOpen ? <CloseIcon size={18} /> : <MenuIcon size={18} />}
                  </button>
                  <button 
                   onClick={handleSignOut}
@@ -120,6 +129,40 @@ export const TopHeader = () => {
           </div>
         </div>
       </div>
+
+      {user && mobileMenuOpen && (
+        <div className="sm:hidden border-t border-white/5 bg-black/95 backdrop-blur-xl">
+          <div className="max-w-7xl mx-auto px-3 py-2 space-y-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = location.pathname === link.path;
+              return (
+                <button
+                  key={link.path}
+                  onClick={() => {
+                    navigate(link.path);
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    isActive ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-900'
+                  }`}
+                >
+                  <Icon size={16} />
+                  {link.name}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-300 hover:bg-red-600/10"
+            >
+              <LogOutIcon size={16} />
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

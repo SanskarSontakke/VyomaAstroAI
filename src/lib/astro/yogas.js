@@ -1,4 +1,4 @@
-import { getZodiacSign, getNakshatra } from './ephemeris';
+import { getZodiacSign } from './ephemeris';
 
 const RASHI_LORD = [
   'Mars', 'Venus', 'Mercury', 'Moon', 'Sun', 'Mercury',
@@ -153,7 +153,6 @@ export function detectYogas(positions, ascendantSign) {
   }
 
   // 8. KAAL SARPA
-  const sortedSigns = Object.values(planetSigns).sort((a,b) => a - b);
   const rahuSign = planetSigns.Rahu;
   const ketuSign = planetSigns.Ketu;
   const arc1 = (ketuSign - rahuSign + 12) % 12;

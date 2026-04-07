@@ -72,7 +72,7 @@ vi.mock('../../hooks/useAstro', () => ({
     }
     return { data: null, isLoading: false };
   }),
-  getChartData: vi.fn((p) => Promise.resolve({
+  getChartData: vi.fn(() => Promise.resolve({
     positions: { Sun: { longitude: 10, sign: 0 } },
     ascendant: { longitude: 5, sign: 0 },
     currentDasha: { maha: { planet: 'Sun' } }

@@ -34,7 +34,7 @@ export default function History() {
     }
   }, [activeProfile, profiles, selectedProfileId]);
 
-  const { data: history = [], isLoading } = useQuery({
+  const { data: history = [], isLoading: _isLoading } = useQuery({
     queryKey: ['readings', selectedProfileId],
     queryFn: async () => {
       if (!selectedProfileId) return [];

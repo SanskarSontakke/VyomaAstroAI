@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
@@ -42,7 +42,7 @@ export default function Settings() {
   
   const [tab, setTab] = useState(0);
   const [profiles, setProfiles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [_loading, setLoading] = useState(true);
   const [editingProfile, setEditingProfile] = useState(null);
   const [showProfileForm, setShowProfileForm] = useState(false);
   const [userId, setUserId] = useState(null);
@@ -50,7 +50,7 @@ export default function Settings() {
     localStorage.getItem('notifEnabled') === 'true'
   );
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -66,11 +66,11 @@ export default function Settings() {
     
     setProfiles(data || []);
     setLoading(false);
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchProfiles();
-  }, []);
+  }, [fetchProfiles]);
 
   const handleLogout = async () => {
     const ok = await confirm({

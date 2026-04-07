@@ -58,7 +58,7 @@ export default function Dashboard() {
     error: astroError
   } = useAstroData(activeProfile);
 
-  const handleRefresh = () => {
+  const _handleRefresh = () => {
     toast.info('Synchronizing', 'Refreshing cosmic coordinates...');
     queryClient.invalidateQueries({ queryKey: ['astroData'] });
     queryClient.invalidateQueries({ queryKey: ['profiles'] });
@@ -73,7 +73,7 @@ export default function Dashboard() {
   }
 
   const errorState = profilesError || astroError;
-  const isSyncing = profilesRefetching || astroRefetching;
+  const _isSyncing = profilesRefetching || astroRefetching;
 
   return (
     <Layout>

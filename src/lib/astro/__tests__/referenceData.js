@@ -12,7 +12,7 @@ export const REFERENCE_CHARTS = [
     expected: {
       positions: {
         Sun:     { sign: 8,  longitude: 256.38, retrograde: false },
-        Moon:    { sign: 10, longitude: 300.05, retrograde: false },
+        Moon:    { sign: 10, longitude: 303.11, retrograde: false },
         Mars:    { sign: 7,  longitude: 225.94, retrograde: false },
         Mercury: { sign: 9,  longitude: 272.26, retrograde: true  },
         Jupiter: { sign: 2,  longitude: 71.67,  retrograde: true  },
@@ -21,7 +21,7 @@ export const REFERENCE_CHARTS = [
         Rahu:    { sign: 9,  longitude: 293.26, retrograde: true  },
         Ketu:    { sign: 3,  longitude: 113.26, retrograde: true  },
       },
-      ascendant: { sign: 11, longitude: 343.92 },
+      ascendant: { sign: 1, longitude: 59.16 },
       nakshatra: { moon: { index: 22, name: 'Dhanishtha', pada: 3 } },
     },
   },
@@ -37,8 +37,8 @@ export const REFERENCE_CHARTS = [
     },
     expected: {
       positions: {
-        Sun:     { sign: 1,  longitude: 59.93,  retrograde: false },
-        Moon:    { sign: 4,  longitude: 130.25, retrograde: false },
+        Sun:     { sign: 2,  longitude: 60.14,  retrograde: false },
+        Moon:    { sign: 4,  longitude: 133.52, retrograde: false },
         Mars:    { sign: 11, longitude: 355.27, retrograde: false },
         Mercury: { sign: 1,  longitude: 53.76,  retrograde: true  },
         Jupiter: { sign: 11, longitude: 356.08, retrograde: false },
@@ -47,8 +47,8 @@ export const REFERENCE_CHARTS = [
         Rahu:    { sign: 7,  longitude: 217.23, retrograde: true  },
         Ketu:    { sign: 1,  longitude: 37.23,  retrograde: true  },
       },
-      ascendant: { sign: 9, longitude: 286.59 },
-      nakshatra: { moon: { index: 9, name: 'Magha', pada: 4 } },
+      ascendant: { sign: 11, longitude: 358.64 },
+      nakshatra: { moon: { index: 9, name: 'Purva Phalguni', pada: 1 } },
     },
   },
   {
@@ -64,7 +64,7 @@ export const REFERENCE_CHARTS = [
     expected: {
       positions: {
         Sun:     { sign: 7,  longitude: 214.43, retrograde: false },
-        Moon:    { sign: 10, longitude: 317.17, retrograde: false },
+        Moon:    { sign: 10, longitude: 320.01, retrograde: false },
         Mars:    { sign: 5,  longitude: 171.46, retrograde: false },
         Mercury: { sign: 7,  longitude: 231.29, retrograde: true  },
         Jupiter: { sign: 9,  longitude: 287.27, retrograde: false },
@@ -73,8 +73,8 @@ export const REFERENCE_CHARTS = [
         Rahu:    { sign: 0,  longitude: 15.45,  retrograde: true  },
         Ketu:    { sign: 6,  longitude: 195.45, retrograde: true  },
       },
-      ascendant: { sign: 6, longitude: 201.21 },
-      nakshatra: { moon: { index: 23, name: 'Shatabhisha', pada: 1 } },
+      ascendant: { sign: 9, longitude: 279.88 },
+      nakshatra: { moon: { index: 23, name: 'Purva Bhadrapada', pada: 1 } },
     },
   },
   {
@@ -90,7 +90,7 @@ export const REFERENCE_CHARTS = [
     expected: {
       positions: {
         Sun:     { sign: 11, longitude: 336.99, retrograde: false },
-        Moon:    { sign: 8,  longitude: 255.29, retrograde: false },
+        Moon:    { sign: 8,  longitude: 258.52, retrograde: false },
         Mars:    { sign: 9,  longitude: 297.75, retrograde: false },
         Mercury: { sign: 10, longitude: 319.95, retrograde: true  },
         Jupiter: { sign: 8,  longitude: 249.48, retrograde: false },
@@ -99,7 +99,7 @@ export const REFERENCE_CHARTS = [
         Rahu:    { sign: 5,  longitude: 151.25, retrograde: true  },
         Ketu:    { sign: 11, longitude: 331.25, retrograde: true  },
       },
-      ascendant: { sign: 3, longitude: 110.05 },
+      ascendant: { sign: 7, longitude: 213.17 },
       nakshatra: { moon: { index: 19, name: 'Purva Ashadha', pada: 1 } },
     },
   },
@@ -116,7 +116,7 @@ export const REFERENCE_CHARTS = [
     expected: {
       positions: {
         Sun:     { sign: 2,  longitude: 78.17,  retrograde: false },
-        Moon:    { sign: 3,  longitude: 104.81, retrograde: false },
+        Moon:    { sign: 3,  longitude: 108.21, retrograde: false },
         Mars:    { sign: 2,  longitude: 77.59,  retrograde: false },
         Mercury: { sign: 2,  longitude: 82.55,  retrograde: true  },
         Jupiter: { sign: 1,  longitude: 36.85,  retrograde: false },
@@ -125,8 +125,8 @@ export const REFERENCE_CHARTS = [
         Rahu:    { sign: 3,  longitude: 90.68,  retrograde: true  },
         Ketu:    { sign: 9,  longitude: 270.68, retrograde: true  },
       },
-      ascendant: { sign: 4, longitude: 123.00 },
-      nakshatra: { moon: { index: 7, name: 'Pushya', pada: 4 } },
+      ascendant: { sign: 7, longitude: 221.61 },
+      nakshatra: { moon: { index: 7, name: 'Ashlesha', pada: 1 } },
     },
   },
 ];

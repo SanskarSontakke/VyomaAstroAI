@@ -13,8 +13,8 @@ export const Layout = ({ children, hideHeader = false }) => {
       <TopProgressBar />
       {!hideHeader && <TopHeader />}
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-28 md:py-12">
-        <div className="flex flex-col gap-6 md:gap-12">
+      <main className="max-w-7xl mx-auto px-3 sm:px-5 lg:px-8 pt-3 sm:pt-4 md:pt-6 pb-24 sm:pb-28 md:pb-12">
+        <div className="flex flex-col gap-5 sm:gap-6 md:gap-10 lg:gap-12">
           {children}
         </div>
       </main>

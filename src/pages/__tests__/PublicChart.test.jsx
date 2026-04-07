@@ -3,7 +3,6 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import PublicChart from '../PublicChart';
 import { describe, it, expect, vi } from 'vitest';
-import { supabase } from '../../lib/supabase';
 
 // Fix IntersectionObserver for Framer Motion
 global.IntersectionObserver = class {

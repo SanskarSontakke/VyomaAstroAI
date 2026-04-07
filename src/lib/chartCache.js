@@ -119,7 +119,7 @@ export async function getCachedChart(profile, ayanamsaSystem) {
       }
       return value;
     });
-  } catch(e) {
+  } catch {
     return null;
   }
 }
@@ -165,7 +165,7 @@ export async function setCachedChart(profile, ayanamsaSystem, chartData) {
 export async function invalidateCachedChart(profileId) {
   try {
     await supabase.from('calculated_charts').delete().eq('profile_id', profileId);
-  } catch(e) {
+  } catch {
     // ignore
   }
 
@@ -173,7 +173,7 @@ export async function invalidateCachedChart(profileId) {
     const db = await openDB();
     const tx  = db.transaction(STORES.CHARTS, 'readwrite');
     tx.objectStore(STORES.CHARTS).delete(profileId);
-  } catch(e) {
+  } catch {
     // ignore
   }
 }
@@ -188,7 +188,7 @@ export async function getCachedInsights(profileId, date) {
     /* Check if it's still today */
     if (cached.date !== dateStr) return null;
     return JSON.parse(cached.data);
-  } catch(e) {
+  } catch {
     return null;
   }
 }
@@ -221,7 +221,7 @@ export async function getCachedTransits(key) {
             }
             return v;
         });
-    } catch(e) {
+    } catch {
         return null;
     }
 }

@@ -8,12 +8,6 @@ import {
 import { log } from '../logger';
 import { parseBirthDateUTC } from '../timezones';
 
-import { 
-  getRahuKaal, 
-  getYamaghanda, 
-  getGuliKaal, 
-  getAbhijitMuhurta 
-} from './rahu.js';
 import { getFullPanchang } from './panchang.js';
 
 
@@ -81,7 +75,6 @@ function calculateDasha(moonData, dobDate, targetDate) {
   mahaDashaStart.setFullYear(mahaDashaStart.getFullYear() - DASHA_DURATIONS[dashaPointer]);
   
   // Calculate Antardasha within this Mahadasha
-  const mahaDashaTotalYears = DASHA_DURATIONS[dashaPointer];
   let antarPointer = dashaPointer; // Antardasha starts with the same planet as Mahadasha
   let antarStartDate = new Date(mahaDashaStart);
   let antarEndDate = new Date(mahaDashaStart);
