@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useProfile } from '../../lib/ProfileContext';
 import { 
   Settings as SettingsIcon, 
   LogOut as LogOutIcon,
@@ -18,19 +19,13 @@ import {
  * Replaces BottomNav. Aligned Logo (Left), Auth/Settings (Right).
  */
 export const TopHeader = () => {
-  const [user, setUser] = useState(null);
+  const { activeProfile, loading: profileLoading } = useProfile();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    checkUser();
-
     const handleScroll = () => {
       // Small buffer to prevent scroll jitter/flicker
       if (window.scrollY > 20) setIsScrolled(true);
@@ -55,7 +50,7 @@ export const TopHeader = () => {
     { name: 'Vault', path: '/vault', icon: VaultIcon },
   ];
 
-  if (!user && location.pathname === '/') return null;
+  if (location.pathname === '/' && !activeProfile && !profileLoading) return null;
 
   return (
     <header className={`
@@ -77,7 +72,7 @@ export const TopHeader = () => {
           </div>
 
           {/* Desktop Navigation - Hidden on Mobile */}
-          {user && (
+          {activeProfile && (
             <nav className="hidden md:flex items-center gap-1 bg-gray-900/50 rounded-full p-1 border border-gray-800">
               {navLinks.map((link) => {
                 const Icon = link.icon;
@@ -101,7 +96,7 @@ export const TopHeader = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2 md:gap-3">
-            {user ? (
+            {activeProfile ? (
                <div className="flex items-center gap-2 md:gap-3">
                  <button
                   onClick={() => navigate('/settings')}
@@ -130,7 +125,7 @@ export const TopHeader = () => {
         </div>
       </div>
 
-      {user && mobileMenuOpen && (
+      {activeProfile && mobileMenuOpen && (
         <div className="sm:hidden border-t border-white/5 bg-black/95 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-3 py-2 space-y-1">
             {navLinks.map((link) => {

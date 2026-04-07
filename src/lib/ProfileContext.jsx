@@ -6,6 +6,7 @@ import { scheduleDailyNotification } from './notifications';
 const ProfileContext = createContext();
 
 export function ProfileProvider({ children }) {
+  const [user, setUser] = useState(null);
   const [activeProfile, setActiveProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({
@@ -30,6 +31,7 @@ export function ProfileProvider({ children }) {
 
       const savedProfileId = localStorage.getItem('activeProfileId');
       const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
 
       if (user) {
         const { data: profiles } = await supabase
@@ -55,6 +57,15 @@ export function ProfileProvider({ children }) {
     };
 
     rehydrate();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (!session?.user) {
+        setActiveProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const updateSettings = (newSettings) => {
@@ -70,6 +81,7 @@ export function ProfileProvider({ children }) {
 
   return (
     <ProfileContext.Provider value={{ 
+      user,
       activeProfile, 
       setActiveProfile: switchProfile, 
       loading,

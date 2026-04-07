@@ -53,35 +53,47 @@ export const CalculationProvider = ({ children }) => {
   /**
    * Dispatches a single, comprehensive calculation job.
    */
-  const calculateAll = useCallback(async (profile, ayanamsaSystem, force = false) => {
+  const calculateAll = useCallback(async (profile, ayanamsaSystem, houseSystem = 'whole_sign', force = false) => {
     if (!profile) return;
     
     // Check memory first
     const existing = astroDataMap[profile.id];
-    if (!force && existing && existing.ayanamsaUsed === ayanamsaSystem) {
+    if (!force && existing && existing.ayanamsaUsed === ayanamsaSystem && existing.houseSystem === houseSystem) {
       return existing;
+    }
+
+    // Start progress immediately so users see activity during cache lookup.
+    if (!force) {
+      setIsCalculating(true);
+      setProgress(5);
+      setError(null);
+      setCurrentTask(`Checking cached chart for ${profile.name}...`);
     }
 
     // Check persistent cache
     if (!force) {
-      const cached = await getCachedChart(profile, ayanamsaSystem);
-      if (cached && cached.ayanamsaUsed === ayanamsaSystem) {
+      const cached = await getCachedChart(profile, ayanamsaSystem, houseSystem);
+      if (cached && cached.ayanamsaUsed === ayanamsaSystem && cached.houseSystem === houseSystem) {
         setAstroDataMap(prev => ({ ...prev, [profile.id]: cached }));
+        setIsCalculating(false);
+        setProgress(100);
+        setCurrentTask(`Loaded cached chart for ${profile.name}.`);
         return cached;
       }
     }
 
-    setIsCalculating(true);
-    setProgress(0);
-    setError(null);
-    setCurrentTask(`Analyzing ${profile.name}'s cosmic imprint...`);
+    if (!isCalculating) {
+      setIsCalculating(true);
+      setProgress(10);
+      setCurrentTask(`Analyzing ${profile.name}'s cosmic imprint...`);
+    }
 
     try {
       const result = await calculateFullChartParallel(profile, ayanamsaSystem, updateProgress);
-      const dataToStore = { ...result, profileId: profile.id };
+      const dataToStore = { ...result, profileId: profile.id, ayanamsaUsed: ayanamsaSystem, houseSystem };
       
       setAstroDataMap(prev => ({ ...prev, [profile.id]: dataToStore }));
-      await setCachedChart(profile, ayanamsaSystem, dataToStore);
+      await setCachedChart(profile, ayanamsaSystem, houseSystem, dataToStore);
       
       setProgress(100);
       return dataToStore;
@@ -92,18 +104,17 @@ export const CalculationProvider = ({ children }) => {
     } finally {
       setTimeout(() => {
         setIsCalculating(false);
-        setProgress(0);
         setCurrentTask('');
       }, 500);
     }
-  }, [astroDataMap, updateProgress]);
+  }, [astroDataMap, updateProgress, isCalculating]);
 
   // Automatically trigger upfront calculation for active profile
   useEffect(() => {
     if (activeProfile) {
-      calculateAll(activeProfile, settings.ayanamsaSystem);
+      calculateAll(activeProfile, settings.ayanamsaSystem, settings.houseSystem);
     }
-  }, [activeProfile, settings.ayanamsaSystem, calculateAll]);
+  }, [activeProfile, settings.ayanamsaSystem, settings.houseSystem, calculateAll]);
 
   const value = useMemo(() => ({
     astroDataMap,

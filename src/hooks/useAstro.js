@@ -3,7 +3,14 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
 import { sendWorkerMessage } from '../lib/astroWorker';
-import { getCachedChart, setCachedChart, getCachedInsights, setCachedInsights } from '../lib/chartCache';
+import {
+  getCachedChart,
+  setCachedChart,
+  getCachedInsights,
+  setCachedInsights,
+  getCachedCalculation,
+  setCachedCalculation
+} from '../lib/chartCache';
 import { useCalculation } from '../lib/CalculationContext';
 
 export function useProfiles(userId) {
@@ -36,7 +43,7 @@ export function useAstroData(profile, date = new Date()) {
       if (!profile) return null;
       
       // 1. Check IndexDB Cache
-      const cached = await getCachedInsights(profile.id, date);
+      const cached = await getCachedInsights(profile.id, date, settings.ayanamsaSystem);
       if (cached) return cached;
 
       // 2. Offload to Worker
@@ -47,7 +54,7 @@ export function useAstroData(profile, date = new Date()) {
       });
 
       // 3. Update Cache
-      await setCachedInsights(profile.id, date, result);
+      await setCachedInsights(profile.id, date, result, settings.ayanamsaSystem);
       return result;
     },
     enabled: !!profile,
@@ -57,24 +64,24 @@ export function useAstroData(profile, date = new Date()) {
 
 export async function getChartData(p, settings = {}) {
   if (!p) return null;
+  const ayanamsaSystem = settings.ayanamsaSystem || 'lahiri';
+  const houseSystem = settings.houseSystem || 'whole_sign';
   
-  // 1. Check IndexDB Cache
-  const cached = await getCachedChart(p.id);
+  // 1. Check IndexDB / Supabase Cache
+  const cached = await getCachedChart(p, ayanamsaSystem, houseSystem);
   if (cached) {
-      /* Check if settings in cache match current settings */
-      // (Simplified for now, assuming settings are part of cache key in a more robust system)
-      return cached;
+    return cached;
   }
 
   // 2. Offload to Worker
   const result = await sendWorkerMessage('CALC_CHART', {
     profile: p,
-    ayanamsaSystem: settings.ayanamsaSystem || 'lahiri',
-    houseSystem: settings.houseSystem || 'whole_sign'
+    ayanamsaSystem,
+    houseSystem
   });
 
   // 3. Update Cache
-  await setCachedChart(p.id, result);
+  await setCachedChart(p, ayanamsaSystem, houseSystem, result);
   return result;
 }
 
@@ -89,9 +96,9 @@ export function useChartData(profile) {
   // This handles the "Compare" use case where secondary profiles might not be pre-calculated yet
   useEffect(() => {
     if (targetProfile && !data && !isCalculating) {
-      calculateAll(targetProfile, settings.ayanamsaSystem);
+      calculateAll(targetProfile, settings.ayanamsaSystem, settings.houseSystem);
     }
-  }, [targetProfile, data, isCalculating, calculateAll, settings.ayanamsaSystem]);
+  }, [targetProfile, data, isCalculating, calculateAll, settings.ayanamsaSystem, settings.houseSystem]);
 
   return {
     data,
@@ -107,12 +114,18 @@ export function useCompatibility(profileA, profileB) {
     queryKey: ['compat_v3', profileA?.id, profileB?.id, settings.ayanamsaSystem],
     queryFn: async () => {
       if (!profileA || !profileB) return null;
-      /* Logic for compatibility could also be moved to worker if it's heavy */
-      return sendWorkerMessage('CALC_COMPATIBILITY', {
+      const orderedIds = [profileA.id, profileB.id].sort().join('_');
+      const cacheKey = `compat:${orderedIds}:${settings.ayanamsaSystem}`;
+      const cached = await getCachedCalculation(cacheKey, 1000 * 60 * 60 * 24 * 7);
+      if (cached) return cached;
+
+      const result = await sendWorkerMessage('CALC_COMPATIBILITY', {
           profileA,
           profileB,
           ayanamsaSystem: settings.ayanamsaSystem
       });
+      await setCachedCalculation(cacheKey, result);
+      return result;
     },
     enabled: !!profileA && !!profileB,
     staleTime: Infinity,
@@ -125,13 +138,19 @@ export function useMuhurta(profile, goalType, startDate, endDate) {
     queryKey: ['muhurta', profile?.id, goalType, startDate, endDate, settings.ayanamsaSystem],
     queryFn: async () => {
       if (!profile || !goalType || !startDate || !endDate) return null;
-      return sendWorkerMessage('FIND_MUHURTAS', {
+      const cacheKey = `muhurta:${profile.id}:${goalType}:${startDate}:${endDate}:${settings.ayanamsaSystem}`;
+      const cached = await getCachedCalculation(cacheKey, 1000 * 60 * 60 * 24 * 7);
+      if (cached) return cached;
+
+      const result = await sendWorkerMessage('FIND_MUHURTAS', {
           profile,
           goalType,
           startISO: startDate.toISOString(),
           endISO: endDate.toISOString(),
           ayanamsaSystem: settings.ayanamsaSystem
       });
+      await setCachedCalculation(cacheKey, result);
+      return result;
     },
     enabled: !!profile && !!goalType && !!startDate && !!endDate,
     staleTime: 1000 * 60 * 60,

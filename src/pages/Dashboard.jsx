@@ -23,7 +23,7 @@ import { useToast } from '../lib/ToastContext';
 import { log } from '../lib/logger';
 import { Layout } from '../components/Shared/Layout';
 import { Card } from '../components/Shared/Card';
-import { DashboardSkeleton } from '../components/SkeletonLoaders';
+import { LoadingProgress } from '../components/Shared/LoadingProgress';
 import { SectionError } from '../components/SectionError';
 import { useTitle } from '../hooks/useTitle';
 
@@ -67,7 +67,10 @@ export default function Dashboard() {
   if (profilesLoading || profileContextLoading || !user) {
     return (
       <Layout>
-        <DashboardSkeleton />
+        <LoadingProgress
+          label="Initializing Dashboard"
+          details="Loading your vault, active subject, and daily cosmic report."
+        />
       </Layout>
     );
   }
@@ -118,7 +121,10 @@ export default function Dashboard() {
           </section>
 
           {astroLoading ? (
-            <DashboardSkeleton />
+            <LoadingProgress
+              label="Fetching Astrological Insights"
+              details="Gathering planetary rhythms and daily energy signals for your active profile."
+            />
           ) : errorState ? (
             <SectionError title="Celestial Drift" detail={errorState.message} />
           ) : insights && (

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
 import { useChartData } from '../hooks/useAstro';
 import { useCalculation } from '../lib/CalculationContext';
-import { useTitle } from '../hooks/useTitle';
 import { getZodiacSign } from '../lib/astro/ephemeris';
 import { 
   Activity, 
@@ -18,7 +19,6 @@ import {
   PageTransition, FadeUp, StaggerParent, StaggerChild, GlowPulse 
 } from '../lib/animations';
 import { Layout } from '../components/Shared/Layout';
-import { LoadingProgress } from '../components/Shared/LoadingProgress';
 import { Card } from '../components/Shared/Card';
 import TransitWheel from '../components/Chart/TransitWheel';
 
@@ -29,19 +29,26 @@ const SIGN_NAMES = [
 
 export default function Transits() {
   useTitle('Live Sky');
+  const navigate = useNavigate();
   const { activeProfile } = useProfile();
-  const { transitData, isCalculating, progress, currentTask } = useCalculation();
+  const { transitData } = useCalculation();
   const { data: natalData } = useChartData();
 
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) navigate('/');
+    };
+    checkUser();
+  }, [navigate]);
 
   if (!activeProfile || !natalData || !transitData) {
     return (
       <Layout>
-        <LoadingProgress
-          label="Updating Transit Data"
-          details={isCalculating ? currentTask || 'Refreshing planetary positions...' : 'Synchronizing with live celestial coordinates...'}
-          progress={isCalculating ? Math.round(progress) : null}
-        />
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+           <div className="w-12 h-12 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+           <p className="text-gray-500 font-medium">Synchronizing with live celestial coordinates...</p>
+        </div>
       </Layout>
     );
   }
@@ -194,4 +201,10 @@ export default function Transits() {
       </PageTransition>
     </Layout>
   );
+}
+
+function useTitle(title) {
+  useEffect(() => {
+    document.title = `${title} | Vyoma`;
+  }, [title]);
 }

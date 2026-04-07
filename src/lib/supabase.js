@@ -17,7 +17,9 @@ const isUrlValid = (url) => {
   }
 }
 
+export const isSupabaseEnabled = isUrlValid(supabaseUrl) && !!supabaseAnonKey;
+
 export const supabase = createClient(
-  isUrlValid(supabaseUrl) ? supabaseUrl : 'https://placeholder.supabase.co',
-  isUrlValid(supabaseUrl) ? supabaseAnonKey : 'placeholder'
+  isSupabaseEnabled ? supabaseUrl : 'https://placeholder.supabase.co',
+  isSupabaseEnabled ? supabaseAnonKey : 'placeholder'
 )

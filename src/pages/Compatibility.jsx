@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useProfiles, useCompatibility } from '../hooks/useAstro';
 import { useProfile } from '../lib/ProfileContext';
+import { useCalculation } from '../lib/CalculationContext';
 import { useTitle } from '../hooks/useTitle';
 import { 
   Heart, 
@@ -19,28 +18,20 @@ import {
   PageTransition, FadeUp, StaggerParent, StaggerChild 
 } from '../lib/animations';
 import { Layout } from '../components/Shared/Layout';
+import { LoadingProgress } from '../components/Shared/LoadingProgress';
 import { Card } from '../components/Shared/Card';
 import { useToast } from '../lib/ToastContext';
 
 export default function Compatibility() {
   useTitle('Match Analysis');
-  const [user, setUser] = useState(null);
-  const navigate = useNavigate();
-  const { activeProfile } = useProfile();
+  const { user, activeProfile } = useProfile();
   const toast = useToast();
   
   const [profileA, setProfileA] = useState(null);
   const [profileB, setProfileB] = useState(null);
   const [showResults, setShowResults] = useState(false);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) navigate('/');
-      else setUser(user);
-    };
-    checkUser();
-  }, [navigate]);
+  const { loading: profileLoading } = useProfile();
+  const { isCalculating, progress, currentTask } = useCalculation();
 
   const { data: profiles = [] } = useProfiles(user?.id);
 
@@ -50,10 +41,32 @@ export default function Compatibility() {
     }
   }, [activeProfile, profileA]);
 
+  useEffect(() => {
+    if (profiles.length > 0 && activeProfile) {
+      if (!profileA) {
+        setProfileA(activeProfile);
+      }
+      if (!profileB) {
+        const nextProfile = profiles.find(p => p.id !== activeProfile.id) || profiles[0];
+        if (nextProfile) setProfileB(nextProfile);
+      }
+    }
+  }, [profiles, activeProfile, profileA, profileB]);
+
+  useEffect(() => {
+    if (profileA && profileB && !showResults) {
+      setShowResults(true);
+    }
+  }, [profileA, profileB, showResults]);
+
   const { data: result, isLoading } = useCompatibility(
-    showResults ? profileA : null, 
+    showResults ? profileA : null,
     showResults ? profileB : null
   );
+
+  const loadingMessage = isCalculating
+    ? currentTask || 'Preparing compatibility data...'
+    : 'Calculating compatibility across both profiles.';
 
   const handleCalculate = () => {
     if (profileA && profileB) {
@@ -66,6 +79,17 @@ export default function Compatibility() {
   };
 
   const scoreColor = result ? getScoreColor(result.totalScore) : 'text-gray-500';
+
+  if (profileLoading || !user || !activeProfile || profiles.length === 0) {
+    return (
+      <Layout>
+        <LoadingProgress
+          label="Preparing Match Analysis"
+          details="Loading your stored profiles and active subject before compatibility calculation."
+        />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -152,6 +176,20 @@ export default function Compatibility() {
               >
                 {isLoading ? 'Decrypting Sync...' : 'Calculate Synergy'}
               </button>
+              {isLoading && (
+                <div className="mt-4 rounded-3xl border border-blue-500/20 bg-blue-950/20 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-blue-300 font-semibold">Compatibility analysis in progress</p>
+                      <p className="text-sm text-gray-300 mt-1">{loadingMessage}</p>
+                    </div>
+                    <span className="text-xs font-bold text-blue-200">{Math.round(progress)}%</span>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-gray-800 overflow-hidden">
+                    <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              )}
             </Card>
           </section>
 

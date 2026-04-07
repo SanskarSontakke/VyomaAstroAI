@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
+import { useCalculation } from '../lib/CalculationContext';
 
 import { useChartData } from '../hooks/useAstro';
 import { 
@@ -26,7 +26,7 @@ import { exportChartPDF } from '../lib/pdfExport';
 import { useToast } from '../lib/ToastContext';
 import { log } from '../lib/logger';
 import { useTitle } from '../hooks/useTitle';
-import { ChartSkeleton } from '../components/SkeletonLoaders';
+import { LoadingProgress } from '../components/Shared/LoadingProgress';
 import { getDailyInsights } from '../lib/astro/insights';
 import { getPratyantarDasha } from '../lib/astro/dasha';
 import { getKPSignificators } from '../lib/astro/kp';
@@ -43,23 +43,87 @@ export default function DeepChart() {
   const [_selectedTopic, _setSelectedTopic] = useState('Marriage');
   const [calcMode, setCalcMode] = useState('parashari');
   const [kpTopic, setKpTopic] = useState('career');
+  const [eclipseList, setEclipseList] = useState([]);
+  const [eclipseLoading, setEclipseLoading] = useState(false);
   const { activeProfile, settings, loading: profileLoading } = useProfile();
   const navigate = useNavigate();
   const toast = useToast();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) navigate('/');
-    };
-    checkUser();
-  }, [navigate]);
 
   const {
     data: astro,
-    isLoading: astroLoading,
     error: _astroError
   } = useChartData();
+  const { isCalculating, progress, currentTask } = useCalculation();
+
+  const currentVarga = useMemo(
+    () => astro?.vargas?.[activeVarga] || astro?.vargas?.D1,
+    [astro, activeVarga]
+  );
+
+  const pratyantarDashas = useMemo(() => {
+    if (!astro?.currentDasha?.antar) return [];
+    return getPratyantarDasha(astro.currentDasha.antar);
+  }, [astro?.currentDasha?.antar]);
+
+  const kpModeData = useMemo(() => {
+    if (calcMode !== 'kp' || !astro?.vargas?.D1) return null;
+
+    const kpSigs = getKPSignificators(
+      astro.vargas.D1.positions,
+      astro.vargas.D1.ascendant?.sign ?? astro.vargas.D1.ascendant?.signIndex
+    );
+
+    const KP_TOPICS = {
+      marriage: { label: 'Marriage', houses: [2, 7, 11] },
+      career:   { label: 'Career', houses: [2, 6, 10, 11] },
+      health:   { label: 'Health', houses: [1, 6, 8, 12] },
+      finance:  { label: 'Finance', houses: [2, 6, 10, 11] },
+      foreign:  { label: 'Foreign', houses: [3, 9, 12] },
+      education:{ label: 'Education', houses: [4, 5, 9] },
+    };
+
+    const topicHouses = KP_TOPICS[kpTopic]?.houses || [];
+    const topicPlanets = Object.entries(kpSigs)
+      .filter(([_, data]) => data.primarySignificators.some(h => topicHouses.includes(h)))
+      .map(([Graha]) => Graha);
+
+    return {
+      kpSigs,
+      kpTopics: KP_TOPICS,
+      topicHouses,
+      topicPlanets,
+      activeMaha: astro.currentDasha?.maha?.planet,
+      activeAntar: astro.currentDasha?.antar?.planet,
+    };
+  }, [calcMode, astro, kpTopic]);
+
+  const eclipseImpacts = useMemo(() => {
+    if (!currentVarga?.positions || eclipseList.length === 0) return [];
+    return eclipseList.map((ecl) => ({
+      eclipse: ecl,
+      impact: eclipseAffectsChart(ecl, currentVarga.positions),
+    }));
+  }, [currentVarga?.positions, eclipseList]);
+
+  useEffect(() => {
+    if (!activeProfile) return;
+    let active = true;
+    setEclipseLoading(true);
+    setEclipseList([]);
+
+    const computeEclipses = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      if (!active) return;
+      const list = findNextEclipses(activeProfile.latitude, activeProfile.longitude, 6);
+      if (!active) return;
+      setEclipseList(list);
+      setEclipseLoading(false);
+    };
+
+    computeEclipses();
+    return () => { active = false; };
+  }, [activeProfile]);
 
   const handleExport = async () => {
     if (!activeProfile || !astro) return;
@@ -76,15 +140,18 @@ export default function DeepChart() {
     }
   };
 
-  if (profileLoading || astroLoading) {
+  if (profileLoading) {
     return (
       <Layout>
-        <ChartSkeleton />
+        <LoadingProgress
+          label="Restoring your profile"
+          details="Loading your saved subject and personalized settings."
+        />
       </Layout>
     );
   }
 
-  if (!activeProfile || !astro) {
+  if (!activeProfile) {
     return (
       <Layout>
         <div className="text-center py-20">
@@ -95,7 +162,17 @@ export default function DeepChart() {
     );
   }
 
-  const currentVarga = astro.vargas[activeVarga] || astro.vargas.D1;
+  if (!astro) {
+    return (
+      <Layout>
+        <LoadingProgress
+          label="Calculating your chart"
+          details={currentTask || 'Building your natal map and generating insight layers.'}
+          progress={Math.round(progress)}
+        />
+      </Layout>
+    );
+  }
 
   const vargasList = [
     { id: 'D1', label: 'Rashi (Life)', icon: '1' },
@@ -108,8 +185,31 @@ export default function DeepChart() {
   return (
     <Layout>
       <PageTransition>
+        {eclipseLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md px-4 py-8">
+            <div className="w-full max-w-2xl rounded-3xl border border-blue-500/20 bg-slate-950/95 p-6 text-center shadow-2xl shadow-blue-500/20">
+              <div className="mx-auto mb-4 w-12 h-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+              <h2 className="text-lg font-bold text-white">Calculating chart overlays</h2>
+              <p className="mt-2 text-sm text-gray-400">Preparing eclipse windows and KP significators for your current chart.</p>
+            </div>
+          </div>
+        )}
         <div className="space-y-8 md:space-y-12">
-          
+          {isCalculating && (
+            <div className="rounded-3xl border border-blue-500/30 bg-blue-950/20 p-4 shadow-2xl shadow-blue-500/10">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-blue-300 font-semibold">Chart calculation in progress</p>
+                  <p className="text-sm text-gray-300 mt-1">{currentTask || 'Preparing your chart analysis...'}</p>
+                </div>
+                <span className="text-xs font-bold text-blue-200">{progress}%</span>
+              </div>
+              <div className="mt-3 h-2 rounded-full bg-gray-800 overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          )}
+
           {/* Header Action Bar */}
           <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 px-1">
             <div className="space-y-1">
@@ -251,13 +351,8 @@ export default function DeepChart() {
                                       className="overflow-hidden mt-4 pt-4 border-t border-blue-600/20"
                                     >
                                       <div className="space-y-2">
-                                        {getPratyantarDasha({
-                                          planet: astro.currentDasha.maha.planet,
-                                          antarPlanet: astro.currentDasha.antar.planet,
-                                          startDate: new Date(astro.currentDasha.antar.startDate),
-                                          endDate: new Date(astro.currentDasha.antar.endDate)
-                                        }).map((p, pIdx) => {
-                                          const isPActive = p.pratyantarPlanet === astro.currentDasha.pratyantar?.planet;
+                                        {pratyantarDashas.map((p, pIdx) => {
+                                          const isPActive = p.pratyantarPlanet === astro.currentDasha?.pratyantar?.planet;
                                           return (
                                             <div key={pIdx} className={`flex justify-between items-center p-2 rounded ${isPActive ? 'bg-blue-600/20 text-blue-400' : 'text-gray-500'}`}>
                                               <span className="text-[10px] font-bold uppercase tracking-tighter">{p.pratyantarPlanet}</span>
@@ -406,27 +501,8 @@ export default function DeepChart() {
           </>
           )}
 
-          {calcMode === 'kp' && (() => {
-            const kpSigs = getKPSignificators(astro.vargas.D1.positions, astro.vargas.D1.ascendant.sign ?? astro.vargas.D1.ascendant.signIndex);
-            const KP_TOPICS = {
-              'marriage': { label: 'Marriage', houses: [2, 7, 11] },
-              'career':   { label: 'Career', houses: [2, 6, 10, 11] },
-              'health':   { label: 'Health', houses: [1, 6, 8, 12] },
-              'finance':  { label: 'Finance', houses: [2, 6, 10, 11] },
-              'foreign':  { label: 'Foreign', houses: [3, 9, 12] },
-              'education':{ label: 'Education', houses: [4, 5, 9] },
-            };
-            const topicHouses = KP_TOPICS[kpTopic].houses;
-
-            // Find planets that strongly signify topic houses
-            const topicPlanets = Object.entries(kpSigs)
-              .filter(([_, data]) => data.primarySignificators.some(h => topicHouses.includes(h)))
-              .map(([Graha]) => Graha);
-
-            const activeMaha = astro.currentDasha?.maha.planet;
-            const activeAntar = astro.currentDasha?.antar?.planet;
-
-            return (
+          {calcMode === 'kp' && kpModeData && (
+            <div className="space-y-12">
               <div className="space-y-12">
                 <section className="space-y-6">
                   <div className="flex items-center gap-3 px-1">
@@ -447,7 +523,7 @@ export default function DeepChart() {
                             </tr>
                           </thead>
                           <tbody>
-                            {Object.entries(kpSigs).map(([name, data]) => {
+                            {Object.entries(kpModeData.kpSigs).map(([name, data]) => {
                               return (
                                 <tr key={name} className="border-b border-gray-900 group hover:bg-indigo-900/10 transition-colors">
                                   <td className="px-6 py-4">
@@ -480,7 +556,7 @@ export default function DeepChart() {
 
                    <Card className="p-8 border-indigo-600/20 bg-indigo-900/5">
                       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6">
-                        {Object.entries(KP_TOPICS).map(([key, topic]) => (
+                        {Object.entries(kpModeData.kpTopics).map(([key, topic]) => (
                           <button
                             key={key}
                             onClick={() => setKpTopic(key)}
@@ -493,28 +569,28 @@ export default function DeepChart() {
 
                       <div className="space-y-6">
                         <div>
-                          <p className="text-xs text-gray-400 mb-2 uppercase tracking-widest">Active Houses: <span className="text-white font-bold">{topicHouses.join(', ')}</span></p>
+                          <p className="text-xs text-gray-400 mb-2 uppercase tracking-widest">Active Houses: <span className="text-white font-bold">{kpModeData.topicHouses.join(', ')}</span></p>
                           <p className="text-sm text-gray-300 leading-relaxed">
-                            For <strong className="text-white">{KP_TOPICS[kpTopic].label}</strong>, the key signalling planets are: <br/>
-                            <span className="text-indigo-400 font-bold uppercase tracking-widest mt-2 block">{topicPlanets.length > 0 ? topicPlanets.join(' • ') : 'None Strongly Signified'}</span>
+                            For <strong className="text-white">{kpModeData.kpTopics[kpTopic].label}</strong>, the key signalling planets are: <br/>
+                            <span className="text-indigo-400 font-bold uppercase tracking-widest mt-2 block">{kpModeData.topicPlanets.length > 0 ? kpModeData.topicPlanets.join(' • ') : 'None Strongly Signified'}</span>
                           </p>
                         </div>
                         
                         <div className="p-4 bg-black/50 border border-gray-800 rounded-xl space-y-2">
                            <p className="text-xs text-gray-500 uppercase tracking-widest">Dasha Alignment Check</p>
                            <p className="text-sm">
-                             Current Dasha: <span className="font-bold text-white uppercase">{activeMaha}</span> / <span className="font-bold text-white uppercase">{activeAntar}</span>
+                             Current Dasha: <span className="font-bold text-white uppercase">{kpModeData.activeMaha}</span> / <span className="font-bold text-white uppercase">{kpModeData.activeAntar}</span>
                            </p>
                            <p className="text-sm">
-                             {topicPlanets.includes(activeMaha) 
-                               ? <span className="text-green-400">Maha Dasha Lord ({activeMaha}) strongly signals {KP_TOPICS[kpTopic].label}.</span>
-                               : <span className="text-gray-500">Maha Dasha Lord ({activeMaha}) is not a primary signifier.</span>
+                             {kpModeData.topicPlanets.includes(kpModeData.activeMaha) 
+                               ? <span className="text-green-400">Maha Dasha Lord ({kpModeData.activeMaha}) strongly signals {kpModeData.kpTopics[kpTopic].label}.</span>
+                               : <span className="text-gray-500">Maha Dasha Lord ({kpModeData.activeMaha}) is not a primary signifier.</span>
                              }
                            </p>
                            <p className="text-sm">
-                             {topicPlanets.includes(activeAntar) 
-                               ? <span className="text-green-400">Antar Dasha Lord ({activeAntar}) strongly signals {KP_TOPICS[kpTopic].label}.</span>
-                               : <span className="text-gray-500">Antar Dasha Lord ({activeAntar}) is not a primary signifier.</span>
+                             {kpModeData.topicPlanets.includes(kpModeData.activeAntar) 
+                               ? <span className="text-green-400">Antar Dasha Lord ({kpModeData.activeAntar}) strongly signals {kpModeData.kpTopics[kpTopic].label}.</span>
+                               : <span className="text-gray-500">Antar Dasha Lord ({kpModeData.activeAntar}) is not a primary signifier.</span>
                              }
                            </p>
                         </div>
@@ -522,8 +598,8 @@ export default function DeepChart() {
                    </Card>
                 </section>
               </div>
-            );
-          })()}
+            </div>
+          )}
 
           {/* Upcoming Eclipses Section */}
           <FadeUp delay={0.8}>
@@ -534,8 +610,16 @@ export default function DeepChart() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {findNextEclipses(activeProfile.latitude, activeProfile.longitude, 6).map((ecl, i) => {
-                  const impact = eclipseAffectsChart(ecl, currentVarga.positions);
+                {eclipseLoading ? (
+                  <div className="col-span-full p-8 rounded-3xl border border-blue-600/20 bg-blue-950/20 text-center text-gray-300">
+                    <div className="mx-auto mb-4 w-12 h-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+                    Calculating eclipse windows for your natal chart...
+                  </div>
+                ) : eclipseImpacts.length === 0 ? (
+                  <div className="col-span-full p-8 rounded-3xl border border-gray-800 bg-gray-950 text-center text-gray-500">
+                    No upcoming eclipse data is available yet.
+                  </div>
+                ) : eclipseImpacts.map(({ eclipse: ecl, impact }, i) => {
                   const moonSignNames = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
                   const moonSignName = moonSignNames[ecl.moonSign];
                   

@@ -12,6 +12,7 @@ import { ProfileProvider } from './lib/ProfileContext';
 import { ToastProvider } from './lib/ToastContext';
 import { ConfirmProvider } from './components/ConfirmDialog';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { CosmicCalculationOverlay } from './components/CosmicCalculationOverlay';
 import { CalculationProvider } from './lib/CalculationContext';
 
 // ─── Lazy-loaded route chunks ─────────────────────────────────────────────────

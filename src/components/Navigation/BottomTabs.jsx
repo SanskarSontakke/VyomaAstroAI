@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { useProfile } from '../../lib/ProfileContext';
 import { 
   Grid as DashboardIcon, 
   PieChart as ChartIcon, 
@@ -15,25 +15,11 @@ import { motion } from 'framer-motion';
  * Visible only on md:hidden.
  */
 export const BottomTabs = () => {
-    const [user, setUser] = React.useState(null);
+    const { activeProfile } = useProfile();
     const navigate = useNavigate();
     const location = useLocation();
 
-    React.useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user || null);
-        });
-        
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            setUser(user);
-        };
-        checkUser();
-        
-        return () => subscription.unsubscribe();
-    }, []);
-
-    if (!user) return null;
+    if (!activeProfile) return null;
 
     const tabs = [
         { name: 'Dashboard', path: '/dashboard', icon: DashboardIcon },
