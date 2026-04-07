@@ -6,10 +6,10 @@
 class WorkerPool {
   constructor(workerUrl) {
     this.workerUrl = workerUrl;
-    // Dynamically allocate based on hardware concurrency, min 2, max 16.
-    // Higher end CPUs (32+ threads) still benefit from limited workers to reduce IPC overhead.
+    // Dynamically allocate based on hardware concurrency, keeping a safe upper limit
+    // to avoid browser memory pressure on production devices.
     const concurrency = navigator.hardwareConcurrency || 4;
-    this.size = Math.max(2, Math.min(concurrency, 16));
+    this.size = Math.max(2, Math.min(concurrency, 6));
     
     this.workers = [];
     this.idleWorkers = [];
@@ -47,12 +47,19 @@ class WorkerPool {
     const errorHandler = (err) => {
       console.error(`WorkerPool: Worker ${index} error (possible crash/OOM)`, err);
       
-      // If the worker was processing a task, reject it gracefully
       if (worker.currentTaskId) {
         const pending = this.pendingRequests.get(worker.currentTaskId);
         if (pending) {
+          const { type, payload, resolve, reject, retries = 0 } = pending;
           this.pendingRequests.delete(worker.currentTaskId);
-          pending.reject(new Error('Web Worker crashed during execution. This may be due to a memory limit or complex calculation.'));
+
+          if (retries < 1) {
+            // Retry once on a fresh worker before failing.
+            const retryId = ++this.requestId;
+            this.queue.unshift({ id: retryId, type, payload, resolve, reject, retries: retries + 1 });
+          } else {
+            reject(new Error('Web Worker crashed during execution. This may be due to a memory limit or complex calculation.'));
+          }
         }
       }
 
@@ -87,7 +94,7 @@ class WorkerPool {
   execute(type, payload) {
     return new Promise((resolve, reject) => {
       const id = ++this.requestId;
-      this.queue.push({ id, type, payload, resolve, reject });
+      this.queue.push({ id, type, payload, resolve, reject, retries: 0 });
       this._processQueue();
     });
   }
@@ -95,9 +102,9 @@ class WorkerPool {
   _processQueue() {
     while (this.queue.length > 0 && this.idleWorkers.length > 0) {
       const worker = this.idleWorkers.pop();
-      const { id, type, payload, resolve, reject } = this.queue.shift();
+      const { id, type, payload, resolve, reject, retries = 0 } = this.queue.shift();
 
-      this.pendingRequests.set(id, { resolve, reject });
+      this.pendingRequests.set(id, { type, payload, resolve, reject, retries });
       worker.currentTaskId = id;
       worker.postMessage({ id, type, payload });
     }
