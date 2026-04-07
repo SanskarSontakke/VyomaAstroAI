@@ -26,8 +26,10 @@ export async function calculateFullChartParallel(profile, ayanamsaSystem, update
 
   updateProgress(20, 'Distributing Computational Load...');
 
-  // 2. Parallel Dispatch of all heavy computations
-  // This utilizes the WorkerPool's concurrency
+  const shouldRunSequentially = typeof navigator !== 'undefined' && (
+    navigator.deviceMemory <= 4 || (navigator.hardwareConcurrency || 4) <= 3
+  );
+
   const taskDefinitions = [
     { type: 'CALC_VARGAS', payload: { profile, ayanamsaSystem }, weight: 20, label: 'Computing Divisional Charts (D1-D60)...' },
     { type: 'CALC_YOGAS', payload: { positions, ascendantSign: ascSign }, weight: 15, label: 'Analyzing Planetary Yogas...' },
@@ -36,13 +38,21 @@ export async function calculateFullChartParallel(profile, ayanamsaSystem, update
     { type: 'CALC_DASHAS', payload: { moonLon, birthUTC: birthUTC.toISOString() }, weight: 15, label: 'Projecting Dasha Timeline...' }
   ];
 
-  const results = await Promise.all(
-    taskDefinitions.map(async (t) => {
-      const res = await sendPoolTask(t.type, t.payload);
-      updateProgress(t.weight, t.label);
-      return { type: t.type, data: res };
-    })
-  );
+  const runTask = async (task) => {
+    const data = await sendPoolTask(task.type, task.payload);
+    updateProgress(task.weight, task.label);
+    return { type: task.type, data };
+  };
+
+  let results;
+  if (shouldRunSequentially) {
+    results = [];
+    for (const task of taskDefinitions) {
+      results.push(await runTask(task));
+    }
+  } else {
+    results = await Promise.all(taskDefinitions.map(runTask));
+  }
 
   // 3. Reassembly into a flat, React-optimized structure
   const final = {
@@ -61,4 +71,8 @@ export async function calculateFullChartParallel(profile, ayanamsaSystem, update
   final.currentDasha = getCurrentDasha(final.dashaTimeline, new Date());
 
   return final;
+}
+
+export async function calculateFullChartSafe(profile, ayanamsaSystem) {
+  return await sendPoolTask('CALC_CHART', { profile, ayanamsaSystem });
 }

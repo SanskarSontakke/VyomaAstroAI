@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import { calculateFullChartParallel } from './ParallelAstro';
+import { calculateFullChartParallel, calculateFullChartSafe } from './ParallelAstro';
 import { setCachedChart, getCachedChart } from './chartCache';
 import { useProfile } from './ProfileContext';
 import { sendPoolTask } from './WorkerPool';
@@ -89,7 +89,15 @@ export const CalculationProvider = ({ children }) => {
     }
 
     try {
-      const result = await calculateFullChartParallel(profile, ayanamsaSystem, updateProgress);
+      let result;
+      try {
+        result = await calculateFullChartParallel(profile, ayanamsaSystem, updateProgress);
+      } catch (primaryError) {
+        console.warn('Calculation failed in parallel mode, falling back to single-worker chart calculation.', primaryError);
+        setCurrentTask('Retrying with safe chart calculation...');
+        result = await calculateFullChartSafe(profile, ayanamsaSystem);
+      }
+
       const dataToStore = { ...result, profileId: profile.id, ayanamsaUsed: ayanamsaSystem, houseSystem };
       
       setAstroDataMap(prev => ({ ...prev, [profile.id]: dataToStore }));

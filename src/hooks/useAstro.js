@@ -95,12 +95,12 @@ export function useChartData(profile) {
   // If we have a target profile but no data in context, trigger calculation
   // This handles the "Compare" use case where secondary profiles might not be pre-calculated yet
   useEffect(() => {
-    if (targetProfile && !data && !isCalculating) {
+    if (targetProfile && !data && !isCalculating && !error) {
       calculateAll(targetProfile, settings.ayanamsaSystem, settings.houseSystem).catch(err => {
         console.error('Failed to calculate chart:', err);
       });
     }
-  }, [targetProfile, data, isCalculating, calculateAll, settings.ayanamsaSystem, settings.houseSystem]);
+  }, [targetProfile, data, isCalculating, error, calculateAll, settings.ayanamsaSystem, settings.houseSystem]);
 
   return {
     data,

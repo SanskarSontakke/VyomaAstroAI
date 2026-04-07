@@ -6,10 +6,17 @@
 class WorkerPool {
   constructor(workerUrl) {
     this.workerUrl = workerUrl;
-    // Dynamically allocate based on hardware concurrency, keeping a safe upper limit
-    // to avoid browser memory pressure on production devices.
+    const deviceMemory = navigator.deviceMemory || 4;
     const concurrency = navigator.hardwareConcurrency || 4;
-    this.size = Math.max(2, Math.min(concurrency, 6));
+    const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    const maxWorkers = (() => {
+      if (deviceMemory <= 2 || isMobile) return 1;
+      if (deviceMemory <= 4) return 2;
+      return Math.max(2, Math.min(concurrency, 4));
+    })();
+
+    this.size = maxWorkers;
     
     this.workers = [];
     this.idleWorkers = [];
