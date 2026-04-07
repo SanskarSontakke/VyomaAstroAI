@@ -156,11 +156,6 @@ function getSunApparent(jde) {
  * Rahu (True Node) longitude in degrees.
  * Transitioned from Mean Node to True Node for high precision.
  */
-function getRahuLongitude(jd) {
-  // moonTrueNode returns radians
-  return norm360(moonTrueNode(jd) * R2D);
-}
-
 // ─── Exported Functions ───────────────────────────────────────────────────────
 
 /**
@@ -207,7 +202,7 @@ export function isCombust(planet, planetLon, sunLon, isRetrograde = false) {
  * Returns ecliptic SIDEREAL positions for each graha.
  * Returns map of planet name -> { longitude, retrograde, combust }.
  */
-export function getPlanetaryPositions(dateObj, lat, lon) {
+export function getPlanetaryPositions(dateObj, _lat, _lon) {
   const jd       = dateToJD(dateObj);
   const jdNext   = jd + 1.0; // 1-day step for stable retrograde detection
   const ayanamsa = getAyanamsa(jd);
@@ -229,14 +224,12 @@ export function getPlanetaryPositions(dateObj, lat, lon) {
 
   const lonsTropical      = getTropicalLons(jd);
   const lonsTropicalNext  = getTropicalLons(jdNext);
-  const ayNext            = getAyanamsa(jdNext);
 
   const result = {};
   
   Object.keys(lonsTropical).forEach(p => {
     // Convert to Sidereal
     const sidLon = norm360(lonsTropical[p] - ayanamsa);
-    const sidLonNext = norm360(lonsTropicalNext[p] - ayNext);
 
     // Detect retrograde based on TROPICAL motion (precession-independent)
     let motionTrop = lonsTropicalNext[p] - lonsTropical[p];

@@ -1,6 +1,5 @@
 import * as julian from 'astronomia/julian';
 import * as sunrise from 'astronomia/sunrise';
-import * as sexagesimal from 'astronomia/sexagesimal';
 import { log } from '../logger.js';
 
 /**

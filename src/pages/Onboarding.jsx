@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { 
   Mail, 
@@ -28,10 +28,9 @@ export default function Onboarding() {
   const [user, setUser] = useState(null);
   const [showProfileSetup, setShowProfileSetup] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const toast = useToast();
 
-  const checkProfile = async (userId) => {
+  const checkProfile = useCallback(async (userId) => {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
@@ -45,7 +44,7 @@ export default function Onboarding() {
       setShowProfileSetup(true);
     }
     setLoading(false);
-  };
+  }, [navigate]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -57,7 +56,7 @@ export default function Onboarding() {
       setIsInitializing(false);
     };
     checkUser();
-  }, [navigate]);
+  }, [checkProfile]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -96,8 +95,8 @@ export default function Onboarding() {
   if (showProfileSetup) {
     return (
       <PageTransition>
-        <div className="min-h-screen bg-black flex items-center justify-center px-4 md:px-0">
-          <div className="w-full max-w-md space-y-8">
+        <div className="min-h-screen bg-black flex items-center justify-center px-3 sm:px-4 md:px-0 py-6">
+          <div className="w-full max-w-md space-y-6 sm:space-y-8">
             <div className="text-center space-y-2">
                <h1 className="text-3xl font-bold tracking-tight text-white uppercase">Initialize Presence</h1>
                <p className="text-gray-500 text-sm">
@@ -105,7 +104,7 @@ export default function Onboarding() {
                </p>
             </div>
             
-            <Card className="p-8">
+            <Card className="p-4 sm:p-6 md:p-8">
               <ProfileForm 
                 userId={user?.id} 
                 isPrimary={true} 
@@ -125,16 +124,16 @@ export default function Onboarding() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 overflow-hidden relative">
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-3 sm:px-4 overflow-hidden relative py-6">
         {/* Background Gradients */}
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full -translate-y-1/2" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-600/5 blur-[120px] rounded-full translate-y-1/2" />
 
-        <div className="w-full max-w-[400px] space-y-10 z-10">
+        <div className="w-full max-w-[420px] space-y-7 sm:space-y-10 z-10">
           
           <div className="text-center space-y-3">
              <div className="flex items-center justify-center gap-3">
-                <h1 className="text-5xl font-black tracking-tighter text-white">Vyoma</h1>
+                <h1 className="text-4xl sm:text-5xl font-black tracking-tighter text-white">Vyoma</h1>
                 <span className="badge-blue">Legacy v1.0</span>
              </div>
              <p className="text-gray-500 font-medium tracking-tight">Precision Vedic analytics. Zero clutter.</p>
@@ -157,7 +156,7 @@ export default function Onboarding() {
                 </button>
              </div>
 
-             <div className="p-8 space-y-6">
+             <div className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
                 <form onSubmit={handleAuth} className="space-y-4">
                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Email Interface</label>

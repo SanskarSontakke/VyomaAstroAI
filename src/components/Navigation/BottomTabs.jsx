@@ -44,8 +44,8 @@ export const BottomTabs = () => {
     ];
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/90 backdrop-blur-xl border-t border-gray-900 pb-safe">
-            <div className="flex items-center justify-around h-16 px-4">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-black/90 backdrop-blur-xl border-t border-gray-900 pb-[max(env(safe-area-inset-bottom),0px)]">
+            <div className="flex items-center justify-around h-16 px-1">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = location.pathname === tab.path;
@@ -53,7 +53,7 @@ export const BottomTabs = () => {
                         <button
                             key={tab.path}
                             onClick={() => navigate(tab.path)}
-                            className={`flex flex-col items-center justify-center gap-1 min-w-[64px] h-full transition-colors ${isActive ? 'text-blue-500' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`flex flex-col items-center justify-center gap-1 min-w-[56px] h-full transition-colors ${isActive ? 'text-blue-500' : 'text-gray-500 hover:text-gray-300'}`}
                         >
                             <div className="relative">
                                 <Icon size={20} className={isActive ? 'scale-110' : 'scale-100'} />
@@ -64,8 +64,8 @@ export const BottomTabs = () => {
                                     />
                                 )}
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
-                                {tab.name.slice(0, 5)}
+                            <span className="text-[9px] font-bold uppercase tracking-[0.16em] leading-none">
+                                {tab.name}
                             </span>
                         </button>
                     );

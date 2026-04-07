@@ -7,7 +7,6 @@ import NorthChart from '../components/Chart/NorthChart';
 import PlanetTable from '../components/Chart/PlanetTable';
 import { PageTransition, FadeUp, StaggerParent, StaggerChild } from '../lib/animations';
 import { useTitle } from '../hooks/useTitle';
-import { useQuery } from '@tanstack/react-query';
 import { 
   GitCompare, 
   ArrowRight, 

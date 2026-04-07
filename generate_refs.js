@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { getPlanetaryPositions, getAscendant } from './src/lib/astro/ephemeris.js';
 import { getMahaDasha } from './src/lib/astro/dasha.js';
-import { getFullPanchang } from './src/lib/astro/panchang.js';
 
 const data = [];
 const years = [1920, 1970, 2000, 2024, 2050];
@@ -53,7 +52,7 @@ for (const y of years) {
               }
             }
           });
-        } catch(e) {
+        } catch {
           // ignore errors for extreme edge cases if engine doesn't support them
         }
       }

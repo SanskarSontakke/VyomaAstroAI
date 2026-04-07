@@ -74,7 +74,7 @@ export default function Muhurta() {
   }, [activeProfile, selectedProfile]);
 
   // Muhurta Hook
-  const { data: results, isLoading, isError } = useMuhurta(
+  const { data: results, isLoading, isError: _isError } = useMuhurta(
     triggered ? selectedProfile : null,
     triggered ? selectedGoal : null,
     triggered ? startDate : null,

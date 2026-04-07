@@ -5,8 +5,6 @@ import {
   ArrowLeft, 
   Github, 
   Globe, 
-  Linkedin, 
-  Twitter, 
   Code2, 
   CheckCircle2,
   Cpu,
@@ -109,15 +107,17 @@ export default function About() {
 }
 
 function TechBadge({ icon: Icon, label }) {
+  const IconComponent = Icon;
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-900/50 border border-gray-800 text-[10px] font-black uppercase tracking-widest text-gray-500">
-       <Icon size={12} className="text-blue-500" />
+       <IconComponent size={12} className="text-blue-500" />
        {label}
     </div>
   );
 }
 
 function SocialLink({ href, label, sub, icon: Icon }) {
+  const IconComponent = Icon;
   return (
     <a 
       href={href} 
@@ -127,7 +127,7 @@ function SocialLink({ href, label, sub, icon: Icon }) {
     >
        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-600/5 blur-2xl rounded-full translate-x-1/2 -translate-y-1/2 group-hover:scale-150 transition-transform duration-500" />
        <div className="w-10 h-10 rounded-xl bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-700 group-hover:text-blue-500 transition-colors shrink-0">
-          <Icon size={18} />
+          <IconComponent size={18} />
        </div>
        <div className="space-y-0.5">
           <h4 className="text-sm font-bold text-white uppercase tracking-tight">{label}</h4>

@@ -18,8 +18,6 @@ import {
 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProfiles } from '../hooks/useAstro';
-import { exportChartPDF } from '../lib/pdfExport';
-import { getDailyInsights } from '../lib/astro/insights';
 
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,7 +33,7 @@ export default function Vault() {
   const [user, setUser] = useState(null);
   const [showAddProfile, setShowAddProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [exporting, setExporting] = useState(false);
+  const [_exporting, _setExporting] = useState(false);
   const { activeProfile, setActiveProfile } = useProfile();
   const navigate = useNavigate();
   const toast = useToast();

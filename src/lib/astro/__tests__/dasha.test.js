@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getMahaDasha, getAntarDasha, getPratyantarDasha,
-         getCurrentDasha, DASHA_ORDER, DASHA_YEARS } from '../dasha.js';
+         DASHA_ORDER, DASHA_YEARS } from '../dasha.js';
 import referenceData from './referenceData.json';
 import { findEclipses, findNextEclipses } from '../eclipses.js';
 

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
@@ -92,7 +92,7 @@ describe('useProfiles', () => {
 describe('useAstroData', () => {
   it('returns insights for a valid profile', async () => {
     const profile = { id: 'p1' };
-    const { result } = renderHook(
+    renderHook(
       () => useAstroData(profile, new Date()),
       { wrapper: createWrapper() }
     );

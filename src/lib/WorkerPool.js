@@ -70,7 +70,7 @@ class WorkerPool {
   _replaceWorker(oldWorker, index) {
     try {
       oldWorker.terminate();
-    } catch (e) {
+    } catch {
       // Ignore termination errors
     }
     

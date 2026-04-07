@@ -72,7 +72,7 @@ describe('Karana', () => {
 });
 
 describe('Full Panchang Data-Driven', () => {
-  it.each(referenceData)('validates panchang structure for: $description', ({ input, expected }) => {
+  it.each(referenceData)('validates panchang structure for: $description', ({ input, expected: _expected }) => {
     const testDate = new Date(`${input.dob_date}T${input.dob_time}:00Z`); // naive utc parsing for test
     const panchang = getFullPanchang(testDate, input.latitude, input.longitude);
     

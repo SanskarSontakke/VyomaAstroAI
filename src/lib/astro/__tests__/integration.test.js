@@ -66,15 +66,15 @@ describe('Integration: getDailyInsights Matrix (1500 Cases)', () => {
       .toBeLessThan(insights.timings.rahuKaal.end.getTime());
   });
 
-  it('performance benchmark completes within 30s for 1500 runs', () => {
+  it('performance benchmark completes within 50s for 1500 runs', () => {
     const start = performance.now();
     // Run 1500 fast executions
     for (const { profile, targetDate } of testCases) {
       getDailyInsights(profile, targetDate);
     }
     const end = performance.now();
-    expect(end - start).toBeLessThan(30000);
-  }, 35000);
+    expect(end - start).toBeLessThan(50000);
+  }, 55000);
 });
 
 

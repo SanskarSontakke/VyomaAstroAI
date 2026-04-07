@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { getPlanetaryPositions, getAscendant,
-         getNakshatra, getZodiacSign, isCombust } from '../ephemeris';
-import { getMahaDasha, getCurrentDasha,
-         getAntarDasha, getPratyantarDasha } from '../dasha';
-import { detectYogas } from '../yogas';
-import { getAspects, doesPlanetAspect } from '../aspects';
+import { getPlanetaryPositions, getAscendant, getNakshatra } from '../ephemeris';
+import { getMahaDasha, getAntarDasha, getPratyantarDasha } from '../dasha';
+import { doesPlanetAspect } from '../aspects';
 import { calculateCompatibility } from '../compatibility';
 import { getNityaYoga, getKarana } from '../panchang';
 import { getKPSubLord, buildKPSubLordTable } from '../kp';
