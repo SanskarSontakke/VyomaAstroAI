@@ -18,6 +18,7 @@ import {
 import { supabase } from '../lib/supabase';
 import { useProfiles, useMuhurta } from '../hooks/useAstro';
 import { useProfile } from '../lib/ProfileContext';
+import { useToast } from '../lib/ToastContext';
 import { useTitle } from '../hooks/useTitle';
 import { PageTransition, FadeUp, StaggerParent, StaggerChild } from '../lib/animations';
 import CosmicLoader from '../components/CosmicLoader';
@@ -38,6 +39,7 @@ export default function Muhurta() {
   useTitle('Muhurta Finder');
   const navigate = useNavigate();
   const { activeProfile } = useProfile();
+  const toast = useToast();
   const [user, setUser] = useState(null);
 
   // Form State
@@ -66,7 +68,9 @@ export default function Muhurta() {
   const { data: profiles = [] } = useProfiles(user?.id);
 
   useEffect(() => {
-    if (activeProfile && !selectedProfile) setSelectedProfile(activeProfile);
+    if (activeProfile && !selectedProfile) {
+      setSelectedProfile(activeProfile);
+    }
   }, [activeProfile, selectedProfile]);
 
   // Muhurta Hook

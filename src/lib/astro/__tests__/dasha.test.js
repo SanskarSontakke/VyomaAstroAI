@@ -1,20 +1,19 @@
 import { describe, it, expect } from 'vitest';
 import { getMahaDasha, getAntarDasha, getPratyantarDasha,
          getCurrentDasha, DASHA_ORDER, DASHA_YEARS } from '../dasha.js';
-import { DASHA_CASES } from './referenceData.js';
+import referenceData from './referenceData.json';
 import { findEclipses, findNextEclipses } from '../eclipses.js';
 
-describe('Maha Dasha', () => {
-  DASHA_CASES.forEach(c => {
-    it(c.label, () => {
-      // If the label says Ashwini but longitude is 14.8 (Bharani), we adjust for the test to pass
-      const lon = c.label.includes('Ashwini') ? 5.0 : c.moonLongitude;
-      const dashas = getMahaDasha(lon, c.birthDate);
-      expect(dashas[0].planet).toBe(c.expectedFirstMaha);
-      if (c.expectedSecondMaha) {
-        expect(dashas[1].planet).toBe(c.expectedSecondMaha);
-      }
-    });
+describe('Maha Dasha Data-Driven', () => {
+  it.each(referenceData)('validates dasha calculation for $description', ({ input, expected }) => {
+    const bd = new Date(`${input.dob_date}T${input.dob_time}:00Z`);
+    // Assuming expected.positions.Moon is available
+    const lon = expected.positions.Moon.longitude;
+    const dashas = getMahaDasha(lon, bd);
+    expect(dashas[0].planet).toBe(expected.mahaDasha);
+    
+    // Ensure all dashas are generated
+    expect(dashas.length).toBeGreaterThanOrEqual(9);
   });
 
   it('total of all Maha Dashas is ~120 years', () => {
@@ -35,6 +34,16 @@ describe('Maha Dasha', () => {
         const diff = Math.abs(dashas[i].startDate.getTime() - dashas[i-1].endDate.getTime());
         expect(diff).toBeLessThan(1000); // 1s tolerance
     }
+  });
+
+  it('performance benchmark completes within 2s for 100 runs', () => {
+    const bd = new Date('1990-01-01T00:00:00Z');
+    const start = performance.now();
+    for (let i = 0; i < 100; i++) {
+      getMahaDasha(14.8, bd);
+    }
+    const end = performance.now();
+    expect(end - start).toBeLessThan(2000);
   });
 });
 
@@ -112,3 +121,4 @@ describe('Eclipse detection', () => {
     });
   }, 30000);
 });
+

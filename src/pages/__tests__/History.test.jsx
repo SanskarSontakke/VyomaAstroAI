@@ -39,7 +39,8 @@ vi.mock('framer-motion', async () => {
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
-      getUser: vi.fn(() => Promise.resolve({ data: { user: { id: 'user1' } } }))
+      getUser: vi.fn(() => Promise.resolve({ data: { user: { id: 'user1' } } })),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } }))
     },
     from: vi.fn(() => ({
       select: vi.fn(() => ({

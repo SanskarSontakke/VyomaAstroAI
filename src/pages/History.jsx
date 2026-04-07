@@ -27,9 +27,12 @@ export default function History() {
   const [expandedDay, setExpandedDay] = useState(null);
 
   useEffect(() => {
-    if (activeProfile) setSelectedProfileId(activeProfile.id);
-    else if (profiles.length > 0) setSelectedProfileId(profiles[0].id);
-  }, [activeProfile, profiles]);
+    if (activeProfile && selectedProfileId !== activeProfile.id) {
+      setSelectedProfileId(activeProfile.id);
+    } else if (!activeProfile && profiles.length > 0 && selectedProfileId !== profiles[0].id) {
+      setSelectedProfileId(profiles[0].id);
+    }
+  }, [activeProfile, profiles, selectedProfileId]);
 
   const { data: history = [], isLoading } = useQuery({
     queryKey: ['readings', selectedProfileId],

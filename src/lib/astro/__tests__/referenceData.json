@@ -1,0 +1,89 @@
+[
+  {
+    "id": "TC_STD_1990",
+    "description": "Standard Birth - Mumbai 1990",
+    "input": {
+      "dob_date": "1990-01-01",
+      "dob_time": "06:00",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "timezone_offset": 5.5,
+      "ayanamsaSystem": "lahiri"
+    },
+    "expected": {
+      "ayanamsa": 23.7145,
+      "ascendantSign": 8,
+      "moonSign": 10,
+      "mahaDasha": "Mars",
+      "positions": {
+        "Sun": { "sign": 8, "longitude": 256.3857 },
+        "Moon": { "sign": 10, "longitude": 300.0521 }
+      },
+      "panchang": {
+        "vara": "Monday",
+        "tithi": 5,
+        "nakshatra": 23,
+        "yoga": 18,
+        "karana": 10
+      }
+    }
+  },
+  {
+    "id": "TC_HIGH_LAT_2024",
+    "description": "High Latitude Birth - Oslo 2024",
+    "input": {
+      "dob_date": "2024-06-21",
+      "dob_time": "12:00",
+      "latitude": 59.9139,
+      "longitude": 10.7522,
+      "timezone_offset": 2.0,
+      "ayanamsaSystem": "lahiri"
+    },
+    "expected": {
+      "ayanamsa": 24.1951,
+      "ascendantSign": 5,
+      "moonSign": 8,
+      "mahaDasha": "Ketu",
+      "positions": {
+        "Sun": { "sign": 2, "longitude": 66.2415 },
+        "Moon": { "sign": 8, "longitude": 248.5132 }
+      },
+      "panchang": {
+        "vara": "Friday",
+        "tithi": 15,
+        "nakshatra": 19,
+        "yoga": 25,
+        "karana": 30
+      }
+    }
+  },
+  {
+    "id": "TC_ECLIPSE_2024",
+    "description": "Solar Eclipse - Dallas 2024",
+    "input": {
+      "dob_date": "2024-04-08",
+      "dob_time": "13:40",
+      "latitude": 32.7767,
+      "longitude": -96.7970,
+      "timezone_offset": -5.0,
+      "ayanamsaSystem": "lahiri"
+    },
+    "expected": {
+      "ayanamsa": 24.1923,
+      "ascendantSign": 3,
+      "moonSign": 11,
+      "mahaDasha": "Mercury",
+      "positions": {
+        "Sun": { "sign": 11, "longitude": 354.7121 },
+        "Moon": { "sign": 11, "longitude": 354.5132 }
+      },
+      "panchang": {
+        "vara": "Monday",
+        "tithi": 30,
+        "nakshatra": 27,
+        "yoga": 1,
+        "karana": 60
+      }
+    }
+  }
+]

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const SIGN_LABELS = ['Ar', 'Ta', 'Ge', 'Ca', 'Le', 'Vi', 'Li', 'Sc', 'Sa', 'Cp', 'Aq', 'Pi'];
 const PLANET_COLORS = {
@@ -15,7 +15,7 @@ const polarToCartesian = (centerX, centerY, radius, angleInDegrees) => {
   };
 };
 
-export default function TransitWheel({ currentPositions, natalPositions, ascendant }) {
+const TransitWheel = React.memo(({ currentPositions, natalPositions, ascendant }) => {
   const [hoveredPlanet, setHoveredPlanet] = useState(null);
   
   const center = 250;
@@ -25,7 +25,7 @@ export default function TransitWheel({ currentPositions, natalPositions, ascenda
   const natalR = 85;
   const labelR = 180;
 
-  const renderZodiac = () => {
+  const renderedZodiac = useMemo(() => {
     return SIGN_LABELS.map((label, i) => {
       const angle = i * 30;
       const mid = polarToCartesian(center, center, labelR, angle + 15);
@@ -50,7 +50,7 @@ export default function TransitWheel({ currentPositions, natalPositions, ascenda
         </g>
       );
     });
-  };
+  }, []);
 
   const renderPlanet = (name, lon, radius, size, color, isNatal = false) => {
     const pos = polarToCartesian(center, center, radius, lon);
@@ -110,7 +110,7 @@ export default function TransitWheel({ currentPositions, natalPositions, ascenda
 
       <svg viewBox="0 0 500 500" className="w-full h-auto drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
         {/* Background zodiac wheel */}
-        {renderZodiac()}
+        {renderedZodiac}
 
         {/* Separator circles */}
         <circle cx={center} cy={center} r={outerR} fill="none" className="stroke-gray-900 stroke-[1]" />
@@ -160,4 +160,7 @@ export default function TransitWheel({ currentPositions, natalPositions, ascenda
       </svg>
     </div>
   );
-}
+});
+
+export default TransitWheel;
+

@@ -119,6 +119,7 @@ function AppContent() {
       <ToastProvider>
         <ConfirmProvider>
           <CalculationProvider>
+            <CosmicCalculationOverlay />
             <BrowserRouter>
               <AnimatedRoutes />
             </BrowserRouter>

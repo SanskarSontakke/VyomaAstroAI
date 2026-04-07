@@ -45,7 +45,9 @@ export default function Compatibility() {
   const { data: profiles = [] } = useProfiles(user?.id);
 
   useEffect(() => {
-    if (activeProfile && !profileA) setProfileA(activeProfile);
+    if (activeProfile && !profileA) {
+      setProfileA(activeProfile);
+    }
   }, [activeProfile, profileA]);
 
   const { data: result, isLoading } = useCompatibility(

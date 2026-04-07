@@ -50,10 +50,6 @@ export default function Settings() {
     localStorage.getItem('notifEnabled') === 'true'
   );
 
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
-
   const fetchProfiles = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -71,6 +67,10 @@ export default function Settings() {
     setProfiles(data || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchProfiles();
+  }, []);
 
   const handleLogout = async () => {
     const ok = await confirm({

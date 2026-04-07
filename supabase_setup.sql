@@ -28,3 +28,21 @@ ALTER TABLE readings_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Users manage own readings" ON readings_log;
 CREATE POLICY "Users manage own readings"
 ON readings_log FOR ALL USING (auth.uid() = user_id);
+
+-- 5. Calculated Charts Cache
+CREATE TABLE IF NOT EXISTS calculated_charts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  calculation_hash TEXT NOT NULL,
+  chart_data JSONB NOT NULL,
+  calculated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(profile_id, calculation_hash)
+);
+
+ALTER TABLE calculated_charts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users manage own calculated charts" ON calculated_charts;
+CREATE POLICY "Users manage own calculated charts"
+ON calculated_charts FOR ALL USING (auth.uid() = user_id);
+

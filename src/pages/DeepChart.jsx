@@ -59,7 +59,7 @@ export default function DeepChart() {
     data: astro,
     isLoading: astroLoading,
     error: astroError
-  } = useChartData(activeProfile);
+  } = useChartData();
 
   const handleExport = async () => {
     if (!activeProfile || !astro) return;

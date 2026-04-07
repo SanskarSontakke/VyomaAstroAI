@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { getZodiacSign, getNakshatra } from '../../lib/astro/ephemeris';
-import { motion } from 'framer-motion';
 import { StaggerParent, StaggerChild } from '../../lib/animations';
 
 const SIGN_NAMES = [
@@ -15,17 +14,20 @@ function formatDegrees(longitude) {
   return `${d}° ${m.toString().padStart(2, '0')}'`;
 }
 
-const PlanetTable = ({ positions, ascendant, activeMahaPlanet, mini = false }) => {
-  if (!positions || !ascendant) return null;
+const PlanetTable = React.memo(({ positions, ascendant, activeMahaPlanet, mini = false }) => {
+  const rows = useMemo(() => {
+    if (!positions || !ascendant) return [];
+    return [
+      { name: 'Ascendant', lon: ascendant.longitude, retro: false },
+      ...Object.entries(positions).map(([name, data]) => ({
+        name,
+        lon: data.longitude,
+        retro: data.retrograde || data.retro
+      }))
+    ];
+  }, [positions, ascendant]);
 
-  const rows = [
-    { name: 'Ascendant', lon: ascendant.longitude, retro: false },
-    ...Object.entries(positions).map(([name, data]) => ({
-      name,
-      lon: data.longitude,
-      retro: data.retrograde || data.retro
-    }))
-  ];
+  if (!positions || !ascendant) return null;
 
   return (
     <div className="w-full overflow-x-auto custom-scrollbar">
@@ -100,6 +102,6 @@ const PlanetTable = ({ positions, ascendant, activeMahaPlanet, mini = false }) =
       </table>
     </div>
   );
-};
+});
 
 export default PlanetTable;

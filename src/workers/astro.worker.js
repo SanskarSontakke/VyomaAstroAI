@@ -1,5 +1,5 @@
 /* Vite module worker — can use ES imports */
-import { getPlanetaryPositions, getAscendant, getZodiacSign } from '../lib/astro/ephemeris';
+import { getPlanetaryPositions, getAscendant } from '../lib/astro/ephemeris';
 import { getMahaDasha, getCurrentDasha } from '../lib/astro/dasha';
 import { getDailyInsights } from '../lib/astro/insights';
 import { getAllVargas } from '../lib/astro/vargas';
@@ -16,46 +16,55 @@ async function calcPositions({ dateISO, lat, lon, ayanamsaSystem }) {
   return getPlanetaryPositions(date, lat, lon, ayanamsaSystem);
 }
 
-async function calcFullChart({ profile, ayanamsaSystem, houseSystem }) {
+async function calcFullUpfront({ profile, ayanamsaSystem }) {
   const birthUTC = parseBirthDateUTC(
     profile.dob_date, profile.dob_time, profile.iana_timezone || 'Asia/Kolkata'
   );
   
-  const positions  = getPlanetaryPositions(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
-  const ascendant  = getAscendant(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
+  // 1. Core Ephemeris & Ascendant
+  const positions = getPlanetaryPositions(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
+  const ascendant = getAscendant(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
   
-  const moonLon    = positions.Moon.longitude;
+  // 2. Timeline (Full Dasha Tree)
+  const moonLon = positions.Moon.longitude;
   const dashaTimeline = getMahaDasha(moonLon, birthUTC);
-  const current    = getCurrentDasha(dashaTimeline, new Date());
+  const currentDasha = getCurrentDasha(dashaTimeline, new Date());
   
-  /* Profile must have iana_timezone for vargas */
-  const vargas     = getAllVargas({ ...profile, iana_timezone: profile.iana_timezone || 'Asia/Kolkata' }, ayanamsaSystem);
-  const yogas      = detectYogas(positions, ascendant.sign);
+  // 3. Divisional Charts (D1-D60)
+  const vargas = getAllVargas(profile, ayanamsaSystem);
   
-  /* Construct planetary data format expected by shadbala/ashtakavarga */
+  // 4. Combinations & Strengths
+  const yogas = detectYogas(positions, ascendant.sign);
+  
+  // Prepare planet data for Shadbala/Ashtakavarga
   const planetData = {};
   Object.entries(positions).forEach(([name, data]) => {
-      planetData[name] = { 
-          longitude: data.longitude, 
-          sign: data.sign,
-          retrograde: data.retrograde,
-          combust: data.combust
-      };
+    planetData[name] = { 
+      longitude: data.longitude, 
+      sign: data.sign,
+      signIndex: data.signIndex,
+      retrograde: data.retrograde,
+      combust: data.combust,
+      nakshatra: data.nakshatra,
+      pada: data.pada
+    };
   });
 
-  const shadbala   = calculateShadbala(planetData, ascendant.sign, birthUTC);
-  const ashtak     = calculateAshtakavarga(planetData, ascendant.sign);
+  const shadbala = calculateShadbala(planetData, ascendant.sign, birthUTC);
+  const ashtakavarga = calculateAshtakavarga(planetData, ascendant.sign);
   
+  // Return optimized flat structure for React consumption
   return { 
     positions: planetData, 
     ascendant, 
     dashaTimeline, 
-    currentDasha: current,
+    currentDasha,
     vargas, 
     yogas, 
     shadbala, 
-    ashtakavarga: ashtak,
-    birthDate: birthUTC
+    ashtakavarga,
+    birthDate: birthUTC.toISOString(),
+    ayanamsaUsed: ayanamsaSystem
   };
 }
 
@@ -81,8 +90,9 @@ self.addEventListener('message', async (e) => {
   try {
     let result;
     switch(type) {
+      case 'CALC_FULL_UPFRONT': result = await calcFullUpfront(payload); break;
       case 'CALC_POSITIONS':  result = await calcPositions(payload); break;
-      case 'CALC_CHART':      result = await calcFullChart(payload); break;
+      case 'CALC_CHART':      result = await calcFullUpfront(payload); break; // Fallback
       case 'CALC_INSIGHTS':   result = await calcInsights(payload); break;
       case 'FIND_ECLIPSES':   result = await handleFindEclipses(payload); break;
       case 'FIND_MUHURTAS':   result = await handleFindMuhurtas(payload); break;

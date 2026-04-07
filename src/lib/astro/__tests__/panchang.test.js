@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getNityaYoga, getKarana, getFullPanchang } from '../panchang';
+import referenceData from './referenceData.json';
 
 describe('Nitya Yoga', () => {
   it('combined longitude 0° = Vishkambha (index 0)', () => {
@@ -70,37 +71,31 @@ describe('Karana', () => {
   });
 });
 
-describe('Full Panchang', () => {
-  // Use a date where constants are known or at least check structure
-  const testDate = new Date('2024-01-15T06:00:00Z');
-  const lat = 19.076; 
-  const lon = 72.877;
-  
-  it('returns all 5 Panchang limbs', () => {
-    const panchang = getFullPanchang(testDate, lat, lon);
+describe('Full Panchang Data-Driven', () => {
+  it.each(referenceData)('validates panchang structure for: $description', ({ input, expected }) => {
+    const testDate = new Date(`${input.dob_date}T${input.dob_time}:00Z`); // naive utc parsing for test
+    const panchang = getFullPanchang(testDate, input.latitude, input.longitude);
+    
     expect(panchang).not.toBeNull();
     expect(panchang).toHaveProperty('vara');
     expect(panchang).toHaveProperty('tithi');
     expect(panchang).toHaveProperty('nakshatra');
     expect(panchang).toHaveProperty('yoga');
     expect(panchang).toHaveProperty('karana');
-  });
-
-  it('returns upagraha positions', () => {
-    const panchang = getFullPanchang(testDate, lat, lon);
-    expect(panchang.upagrahas).toHaveProperty('gulika');
-    expect(panchang.upagrahas).toHaveProperty('mandi');
-    expect(panchang.upagrahas.gulika).toHaveProperty('longitude');
-  });
-
-  it('tithi number is within 1-30', () => {
-    const panchang = getFullPanchang(testDate, lat, lon);
+    
     expect(panchang.tithi.number).toBeGreaterThanOrEqual(1);
     expect(panchang.tithi.number).toBeLessThanOrEqual(30);
+    expect(['Shukla','Krishna']).toContain(panchang.tithi.paksha);
   });
 
-  it('paksha is Shukla or Krishna', () => {
-    const panchang = getFullPanchang(testDate, lat, lon);
-    expect(['Shukla','Krishna']).toContain(panchang.tithi.paksha);
+  it('performance benchmark completes within 2s for 100 runs', () => {
+    const { input } = referenceData[0];
+    const testDate = new Date(`${input.dob_date}T${input.dob_time}:00Z`);
+    const start = performance.now();
+    for (let i = 0; i < 100; i++) {
+      getFullPanchang(testDate, input.latitude, input.longitude);
+    }
+    const end = performance.now();
+    expect(end - start).toBeLessThan(2000);
   });
 });

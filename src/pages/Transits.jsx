@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
 import { useChartData } from '../hooks/useAstro';
-import { getPlanetaryPositions, getZodiacSign } from '../lib/astro/ephemeris';
+import { useCalculation } from '../lib/CalculationContext';
+import { getZodiacSign } from '../lib/astro/ephemeris';
 import { 
   Activity, 
   MapPin, 
@@ -30,37 +31,18 @@ export default function Transits() {
   useTitle('Live Sky');
   const navigate = useNavigate();
   const { activeProfile } = useProfile();
-  const [user, setUser] = useState(null);
-  const [transitPositions, setTransitPositions] = useState(null);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const { transitData } = useCalculation();
+  const { data: natalData } = useChartData();
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) navigate('/');
-      else setUser(user);
     };
     checkUser();
   }, [navigate]);
 
-  const { data: natalData } = useChartData(activeProfile);
-
-  useEffect(() => {
-    if (!activeProfile) return;
-
-    const calcTransits = () => {
-      const now = new Date();
-      const pos = getPlanetaryPositions(now, activeProfile.latitude, activeProfile.longitude);
-      setTransitPositions(pos);
-      setLastUpdated(now);
-    };
-
-    calcTransits();
-    const interval = setInterval(calcTransits, 60000);
-    return () => clearInterval(interval);
-  }, [activeProfile]);
-
-  if (!activeProfile || !natalData || !transitPositions) {
+  if (!activeProfile || !natalData || !transitData) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -71,6 +53,8 @@ export default function Transits() {
     );
   }
 
+  const transitPositions = transitData.positions;
+  const lastUpdated = transitData.lastUpdated;
   const natalMoonSign = natalData.positions.Moon.signIndex || 0;
 
   const highlights = [];

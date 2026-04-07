@@ -32,13 +32,15 @@ export default function Compare() {
   const [idB, setIdB] = useState('');
 
   useEffect(() => {
-    if (profiles.length > 0) {
+    if (profiles.length > 0 && !idA) {
+      setIdA(activeProfile?.id || profiles[0].id);
+    }
+    if (profiles.length > 0 && !idB) {
       const firstId = activeProfile?.id || profiles[0].id;
       const secondId = profiles.find(p => p.id !== firstId)?.id || profiles[0].id;
-      setIdA(firstId);
       setIdB(secondId);
     }
-  }, [profiles, activeProfile]);
+  }, [profiles, activeProfile, idA, idB]);
 
   const profileA = profiles.find(p => p.id === idA);
   const profileB = profiles.find(p => p.id === idB);

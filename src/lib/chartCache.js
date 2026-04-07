@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 const DB_NAME    = 'naksha_cache';
 const DB_VERSION = 2;
 const STORES = {
@@ -47,12 +49,70 @@ async function dbPut(store, value) {
   });
 }
 
-/* Birth chart cache — permanent, keyed by profile ID */
-export async function getCachedChart(profileId) {
+// Hash function to detect parameter changes
+export function generateCalculationHash(profile, ayanamsaSystem) {
+  return `${profile.dob_date}_${profile.dob_time}_${profile.latitude}_${profile.longitude}_${ayanamsaSystem}`;
+}
+
+const TTL_DAYS = 7;
+
+/* Birth chart cache — Cache-First with Supabase and IndexedDB fallback */
+export async function getCachedChart(profile, ayanamsaSystem) {
+  if (!profile || !profile.id) return null;
+  const hash = generateCalculationHash(profile, ayanamsaSystem);
+
   try {
-    const cached = await dbGet(STORES.CHARTS, profileId);
+    // 1. Check Supabase first
+    const { data: supabaseData, error } = await supabase
+      .from('calculated_charts')
+      .select('*')
+      .eq('profile_id', profile.id)
+      .eq('calculation_hash', hash)
+      .single();
+
+    if (!error && supabaseData) {
+      // Check TTL (7 days)
+      const calculatedAt = new Date(supabaseData.calculated_at);
+      const ageInDays = (new Date() - calculatedAt) / (1000 * 60 * 60 * 24);
+
+      if (ageInDays <= TTL_DAYS) {
+        // Valid cache found in Supabase
+        const chartData = supabaseData.chart_data;
+        // Parse dates back to Date objects
+        const parsedData = JSON.parse(JSON.stringify(chartData), (key, value) => {
+          if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+            return new Date(value);
+          }
+          return value;
+        });
+        
+        // Update local IndexedDB for future offline/fast access
+        await dbPut(STORES.CHARTS, {
+          profileId: profile.id,
+          hash: hash,
+          data: JSON.stringify(parsedData),
+          cachedAt: supabaseData.calculated_at,
+        });
+
+        return parsedData;
+      }
+    }
+  } catch (err) {
+    console.warn('Supabase cache check failed, falling back to local DB:', err);
+  }
+
+  // 2. Fallback to IndexedDB
+  try {
+    const cached = await dbGet(STORES.CHARTS, profile.id);
     if (!cached) return null;
-    /* Deserialize dates */
+
+    // Check if hash matches local cache
+    if (cached.hash !== hash) return null;
+
+    const calculatedAt = new Date(cached.cachedAt);
+    const ageInDays = (new Date() - calculatedAt) / (1000 * 60 * 60 * 24);
+    if (ageInDays > TTL_DAYS) return null;
+
     return JSON.parse(cached.data, (key, value) => {
       if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
         return new Date(value);
@@ -64,12 +124,38 @@ export async function getCachedChart(profileId) {
   }
 }
 
-export async function setCachedChart(profileId, chartData) {
+export async function setCachedChart(profile, ayanamsaSystem, chartData) {
+  if (!profile || !profile.id) return;
+  const hash = generateCalculationHash(profile, ayanamsaSystem);
+  const now = new Date().toISOString();
+
+  // Strip non-essential deeply nested properties to save row limit if needed
+  // (Assuming chartData is reasonably sized for JSONB)
+  const optimizedData = JSON.parse(JSON.stringify(chartData));
+
+  // 1. Save to Supabase
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('calculated_charts').upsert({
+        profile_id: profile.id,
+        user_id: user.id,
+        calculation_hash: hash,
+        chart_data: optimizedData,
+        calculated_at: now
+      }, { onConflict: 'profile_id, calculation_hash' });
+    }
+  } catch (err) {
+    console.warn('Supabase cache write failed:', err);
+  }
+
+  // 2. Save to IndexedDB
   try {
     await dbPut(STORES.CHARTS, {
-      profileId,
+      profileId: profile.id,
+      hash: hash,
       data: JSON.stringify(chartData),
-      cachedAt: new Date().toISOString(),
+      cachedAt: now,
     });
   } catch(e) {
     console.warn('Cache write failed:', e);
@@ -77,9 +163,19 @@ export async function setCachedChart(profileId, chartData) {
 }
 
 export async function invalidateCachedChart(profileId) {
-  const db = await openDB();
-  const tx  = db.transaction(STORES.CHARTS, 'readwrite');
-  tx.objectStore(STORES.CHARTS).delete(profileId);
+  try {
+    await supabase.from('calculated_charts').delete().eq('profile_id', profileId);
+  } catch(e) {
+    // ignore
+  }
+
+  try {
+    const db = await openDB();
+    const tx  = db.transaction(STORES.CHARTS, 'readwrite');
+    tx.objectStore(STORES.CHARTS).delete(profileId);
+  } catch(e) {
+    // ignore
+  }
 }
 
 /* Daily insights cache — expires at midnight */

@@ -4,98 +4,61 @@ import { getCurrentDasha } from './astro/dasha';
 
 /**
  * Orchestrates a parallelized calculation of a full Vedic chart.
- * Progress is reported via the updateProgress callback.
+ * This implements the unified, upfront calculation sequence.
  */
 export async function calculateFullChartParallel(profile, ayanamsaSystem, updateProgress) {
   const birthUTC = parseBirthDateUTC(
     profile.dob_date, profile.dob_time, profile.iana_timezone || 'Asia/Kolkata'
   );
 
-  // 1. Initial State: Positions & Ascendant (Needed for almost all other calcs)
-  updateProgress(10, 'Synchronizing Celestial Positions...');
-  const baseData = await sendPoolTask('CALC_POSITIONS', {
-    dateISO: birthUTC.toISOString(),
-    lat: profile.latitude,
-    lon: profile.longitude,
-    ayanamsaSystem
+  updateProgress(5, 'Initializing Celestial Engine...');
+
+  // 1. Initial Positions & Ascendant (Base for all others)
+  // We use CALC_CHART as a base because it returns positions and ascendant quickly
+  const baseData = await sendPoolTask('CALC_CHART', { 
+    profile, 
+    ayanamsaSystem 
   });
   
-  const positions = baseData;
-  // Ascendant calculation (Fast, usually part of positions or separate)
-  // Re-fetch Ascendant if not included in positions (astro.worker.js calcPositions returns getPlanetaryPositions)
-  // Let's refine astro.worker.js later if needed, but for now assuming we need Ascendant sign.
-  // Actually, astro.worker.js calcFullChart does both.
-  
-  // To keep it simple and truly parallel, let's have a dedicated ASC task or just use the worker's calcFullChart logic
-  // but split it. For now, I'll assume we need the ASC sign for the rest.
-  
-  // We'll call a quick task for the Ascendant.
-  const ascendant = await sendPoolTask('CALC_CHART', { profile, ayanamsaSystem }); 
-  // Wait, if I call CALC_CHART, it does everything. 
-  // I should have a CALC_BASE task.
-  
-  updateProgress(20, 'Distributing Computational Load...');
-
-  const ascSign = ascendant.ascendant.sign; 
+  const { positions, ascendant } = baseData;
+  const ascSign = ascendant.sign;
   const moonLon = positions.Moon.longitude;
 
-  // 2. Parallel Dispatch
-  const tasks = [
-    { 
-      type: 'CALC_VARGAS', 
-      payload: { profile, ayanamsaSystem }, 
-      weight: 15, 
-      label: 'Partitioning Divisional Charts (Vargas)...' 
-    },
-    { 
-      type: 'CALC_YOGAS', 
-      payload: { positions, ascendantSign: ascSign }, 
-      weight: 15, 
-      label: 'Identifying Planetary Combinations (Yogas)...' 
-    },
-    { 
-      type: 'CALC_SHADBALA', 
-      payload: { positions, ascendantSign: ascSign, birthUTC: birthUTC.toISOString() }, 
-      weight: 15, 
-      label: 'Measuring Planetary Strengths (Shadbala)...' 
-    },
-    { 
-      type: 'CALC_ASHTAKAVARGA', 
-      payload: { positions, ascendantSign: ascSign }, 
-      weight: 15, 
-      label: 'Computing Bindu Points (Ashtakavarga)...' 
-    },
-    { 
-      type: 'CALC_DASHAS', 
-      payload: { moonLon, birthUTC: birthUTC.toISOString() }, 
-      weight: 20, 
-      label: 'Timeline Projection (Vimshottari Dasha)...' 
-    }
+  updateProgress(20, 'Distributing Computational Load...');
+
+  // 2. Parallel Dispatch of all heavy computations
+  // This utilizes the WorkerPool's concurrency
+  const taskDefinitions = [
+    { type: 'CALC_VARGAS', payload: { profile, ayanamsaSystem }, weight: 20, label: 'Computing Divisional Charts (D1-D60)...' },
+    { type: 'CALC_YOGAS', payload: { positions, ascendantSign: ascSign }, weight: 15, label: 'Analyzing Planetary Yogas...' },
+    { type: 'CALC_SHADBALA', payload: { positions, ascendantSign: ascSign, birthUTC: birthUTC.toISOString() }, weight: 15, label: 'Calculating Shadbala Strengths...' },
+    { type: 'CALC_ASHTAKAVARGA', payload: { positions, ascendantSign: ascSign }, weight: 15, label: 'Generating Ashtakavarga Bindus...' },
+    { type: 'CALC_DASHAS', payload: { moonLon, birthUTC: birthUTC.toISOString() }, weight: 15, label: 'Projecting Dasha Timeline...' }
   ];
 
   const results = await Promise.all(
-    tasks.map(async (t) => {
+    taskDefinitions.map(async (t) => {
       const res = await sendPoolTask(t.type, t.payload);
       updateProgress(t.weight, t.label);
       return { type: t.type, data: res };
     })
   );
 
-  // 3. Reassembly
+  // 3. Reassembly into a flat, React-optimized structure
   const final = {
     positions,
-    ascendant: ascendant.ascendant,
-    birthDate: birthUTC,
-    currentDasha: getCurrentDasha(results.find(r => r.type === 'CALC_DASHAS').data, new Date())
+    ascendant,
+    birthDate: birthUTC.toISOString(),
+    ayanamsaUsed: ayanamsaSystem,
+    vargas: results.find(r => r.type === 'CALC_VARGAS').data,
+    yogas: results.find(r => r.type === 'CALC_YOGAS').data,
+    shadbala: results.find(r => r.type === 'CALC_SHADBALA').data,
+    ashtakavarga: results.find(r => r.type === 'CALC_ASHTAKAVARGA').data,
+    dashaTimeline: results.find(r => r.type === 'CALC_DASHAS').data,
   };
 
-  results.forEach(r => {
-    if (r.type === 'CALC_VARGAS') final.vargas = r.data;
-    if (r.type === 'CALC_YOGAS') final.yogas = r.data;
-    if (r.type === 'CALC_SHADBALA') final.shadbala = r.data;
-    if (r.type === 'CALC_ASHTAKAVARGA') final.ashtakavarga = r.data;
-    if (r.type === 'CALC_DASHAS') final.dashaTimeline = r.data;
-  });
+  // Pre-calculate current dasha for convenience
+  final.currentDasha = getCurrentDasha(final.dashaTimeline, new Date());
 
   return final;
 }

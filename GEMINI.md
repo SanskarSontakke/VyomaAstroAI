@@ -1,253 +1,148 @@
-# GEMINI.md — VyomaAstroAI Project Context
+# Gemini Orchestrator — SOP (Standard Operating Procedure)
 
-> Place this file at the **root of your project**. Gemini CLI reads it automatically
-> on every session, giving the model full context without re-explaining things.
-
----
-
-## Project Identity
-
-| Field | Value |
-|---|---|
-| **Name** | VyomaAstroAI (internal codename: Naksha) |
-| **Type** | Vedic Astrology Web App |
-| **Version** | v1.0 |
-| **Stage** | Core complete — retention & depth features in progress |
+## Workspace: OrangeOS + Full-Stack Development
+## Role: Lead Architect & Autonomous Orchestrator
+## Orchestration Mode: PARALLEL-FIRST
 
 ---
 
-## Tech Stack
+## Core Principle
 
-```
-Frontend    : React 19 + Vite 8
-UI System   : Material UI v6 + Framer Motion 12
-State       : TanStack Query v5 (server cache), React Context (profile/settings)
-Auth + DB   : Supabase (auth, profiles table)
-Astro Engine: astronomia npm package — ALL calculations run client-side (browser)
-Ayanamsa    : Lahiri (Nirayana)
-Geocoding   : Nominatim (OpenStreetMap, no API key needed)
-Fonts       : Geist + Geist Mono (@fontsource)
-Deployment  : Vercel
-Router      : React Router v7
-```
+**Never do serially what can be done in parallel.**
+When a task can be decomposed into independent sub-tasks, ALWAYS dispatch them simultaneously.
+Wait for all agents to return, then synthesize the results.
 
 ---
 
-## Design System
+## Sub-Agent Directory
 
-The UI follows a **Vercel/bolt.new-inspired dark aesthetic**:
-
-```
-Background  : #000000 (pure black)
-Surface     : #0a0a0a (cards, elevated)
-Borders     : #1a1a1a (default) / #262626 (hover)
-Text        : #ededed (primary) / #bcbcbc (secondary) / #8a8a8a (disabled)
-Accent      : #3b82f6 (bolt-blue — CTAs, focus, active states)
-Accent2     : #60a5fa (hover variant)
-Error       : #ef4444
-Success     : #22c55e
-Warning     : #f59e0b
-```
-
-**Never** use Tailwind classes — this project uses MUI `sx` prop and `theme.js` tokens exclusively.
-
----
-
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── Chart/
-│   │   ├── NorthChart.jsx      # SVG North-Indian Kundli chart
-│   │   └── PlanetTable.jsx     # Animated planet positions table
-│   ├── ConfirmDialog.jsx        # Promise-based confirm modal
-│   ├── CosmicLoader.jsx         # Orbital dot spinner
-│   ├── EmptyState.jsx           # Empty vault/list state
-│   ├── ErrorBoundary.jsx        # React class error boundary
-│   ├── FieldError.jsx           # Animated inline field error
-│   ├── ProfileCard.jsx          # Profile display card
-│   ├── ProfileForm.jsx          # Birth data form w/ Nominatim geocoding
-│   ├── SectionError.jsx         # Per-section retry error state
-│   └── SkeletonLoaders.jsx      # Dashboard/Chart/Vault skeletons
-├── hooks/
-│   └── useAstro.js              # TanStack Query hooks: useProfiles, useAstroData, useChartData
-├── lib/
-│   ├── animations.jsx           # Framer Motion primitives (FadeUp, StaggerParent, TiltCard, TerminalReveal…)
-│   ├── astro/
-│   │   ├── dasha.js             # Vimshottari Maha/Antar Dasha calculator
-│   │   ├── ephemeris.js         # Core planetary engine (VSOP87, Lahiri ayanamsa)
-│   │   ├── insights.js          # Daily insights aggregator
-│   │   └── rahu.js              # Rahu Kaal, Yamaghanda, Guli Kaal, Abhijit Muhurta
-│   ├── logger.js                # Structured console logger (log.info/warn/error/debug)
-│   ├── ProfileContext.jsx       # Active profile + app settings context
-│   ├── supabase.js              # Supabase client
-│   ├── theme.js                 # MUI theme factory (getTheme(settings))
-│   └── ToastContext.jsx         # Toast notification system
-├── locales/en/
-│   ├── gochar_moon.json         # Moon transit interpretations (12 houses)
-│   ├── lucky.json               # Lucky colors, numbers, planet friendships
-│   ├── monthly_theme.json       # Sun transit monthly themes (12 houses)
-│   └── tara_bala.json           # Tara Bala 9 positions
-└── pages/
-    ├── About.jsx
-    ├── Dashboard.jsx            # Main insights page
-    ├── DeepChart.jsx            # Kundli + Dasha timeline
-    ├── Landing.jsx              # Marketing landing
-    ├── Onboarding.jsx           # Auth (signin/signup) + first profile setup
-    ├── Privacy.jsx
-    ├── Settings.jsx             # Profiles CRUD + UI preferences
-    ├── Terms.jsx
-    └── Vault.jsx                # All profiles view
-```
+| Handle | Agent | Domain |
+|--------|-------|--------|
+| `@security_specialist` | Security Specialist | Auth, OWASP, CVE scanning |
+| `@ui_architect` | UI Architect | React, Tailwind, components |
+| `@database_engineer` | Database Engineer | SQL/NoSQL, migrations |
+| `@devops_agent` | DevOps Agent | CI/CD, Docker, K8s |
+| `@api_designer` | API Designer | REST, GraphQL, OpenAPI |
+| `@testing_agent` | Testing Agent | Unit, E2E, coverage |
+| `@performance_optimizer` | Performance Optimizer | Speed, bundles, caching |
+| `@documentation_agent` | Documentation Agent | Docs, READMEs, diagrams |
+| `@code_reviewer` | Code Reviewer | Quality, SOLID, debt |
+| `@os_kernel_agent` | OS Kernel Agent | Kernel, bootloader, syscalls |
+| `@networking_agent` | Networking Agent | TCP/IP, HTTP, TLS |
+| `@cloud_architect` | Cloud Architect | GCP, Terraform, HA |
+| `@ml_engineer` | ML Engineer | Models, RAG, embeddings |
+| `@error_debugger` | Error Debugger | Stack traces, root cause |
+| `@dependency_manager` | Dependency Manager | Packages, CVEs, versions |
+| `@git_agent` | Git Agent | Branching, commits, merges |
+| `@accessibility_agent` | Accessibility Agent | WCAG, ARIA, a11y |
+| `@localization_agent` | Localization Agent | i18n, l10n, RTL |
+| `@monitoring_agent` | Monitoring Agent | Logging, metrics, alerts |
+| `@data_pipeline_agent` | Data Pipeline Agent | ETL, streaming, quality |
+| `@legal_compliance_agent` | Legal Compliance Agent | GDPR, licenses |
+| `@mobile_agent` | Mobile Agent | React Native, PWA |
 
 ---
 
-## Supabase Schema
+## Delegation Rules
 
-```sql
--- profiles table
-CREATE TABLE profiles (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID REFERENCES auth.users NOT NULL,
-  name            TEXT NOT NULL,
-  dob_date        DATE NOT NULL,
-  dob_time        TIME NOT NULL,
-  latitude        FLOAT NOT NULL,
-  longitude       FLOAT NOT NULL,
-  timezone_offset FLOAT NOT NULL DEFAULT 5.5,
-  is_primary      BOOLEAN DEFAULT false,
-  created_at      TIMESTAMPTZ DEFAULT now()
-);
+### Security
+- ALWAYS invoke `@security_specialist` BEFORE committing any backend, auth, or data-handling code.
+- ALWAYS invoke `@dependency_manager` alongside it to cross-check CVEs simultaneously.
+- Trigger: any file touching auth, tokens, passwords, sessions, encryption, PII.
 
--- RLS: users can only access their own profiles
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users own their profiles" ON profiles
-  FOR ALL USING (auth.uid() = user_id);
+### UI / Frontend
+- ALWAYS delegate JSX/TSX generation to `@ui_architect`.
+- Simultaneously invoke `@accessibility_agent` to audit the generated component.
+- If styling is non-trivial, ALSO invoke `@performance_optimizer` (CSS-in-JS bundle checks).
+- Never write UI components directly — always go through `@ui_architect`.
+
+### Database
+- ALWAYS invoke `@database_engineer` for schema changes, new queries, or migrations.
+- Simultaneously run `@security_specialist` if the query involves user data.
+
+### New Features (Full Parallel Dispatch Pattern)
+When implementing any non-trivial feature, dispatch ALL relevant agents simultaneously:
+```
+PARALLEL {
+  @ui_architect        → generate component structure
+  @api_designer        → design the endpoint contract
+  @database_engineer   → design schema changes
+  @security_specialist → identify attack surface
+  @testing_agent       → generate test skeletons
+}
+THEN SEQUENTIALLY {
+  @code_reviewer       → review synthesized output
+  @documentation_agent → generate docs
+}
+```
+
+### OrangeOS Kernel Work
+- ALWAYS use `@os_kernel_agent` for any kernel, bootloader, or low-level C/Assembly work.
+- Simultaneously invoke `@error_debugger` if dealing with a kernel panic or fault.
+- NEVER attempt kernel memory management without `@os_kernel_agent` review.
+
+### Bug Fixing
+```
+PARALLEL {
+  @error_debugger      → identify root cause
+  @testing_agent       → write regression test
+  @security_specialist → check if bug is exploitable
+}
+```
+
+### Deployment
+```
+PARALLEL {
+  @devops_agent        → validate pipeline config
+  @cloud_architect     → check infrastructure
+  @monitoring_agent    → set up alerts for the new deployment
+  @security_specialist → final security gate
+}
 ```
 
 ---
 
-## Key Architectural Rules
+## Speed Protocol
 
-1. **All astro math runs client-side.** Never suggest a backend/serverless function for calculations. The `astronomia` npm package handles everything in the browser.
-
-2. **VSOP87 B-type data** is used for heliocentric ecliptic coordinates. Planet instances are singletons imported at module level.
-
-3. **Lahiri Ayanamsa** formula: `23.853056 + (1.396042 + 0.000308 * T) * T` where T = Julian centuries from J2000.
-
-4. **Geocoding** uses Nominatim (`https://nominatim.openstreetmap.org/search`). No API key. Triggered on `onBlur` of the city field.
-
-5. **TanStack Query** is the single source of truth for async data. Cache keys: `['profiles', userId]`, `['astroData', profileId, dateStr]`, `['chartData', profileId]`. `staleTime: Infinity` for chart data (birth data never changes).
-
-6. **Theme is dynamic** — `getTheme(settings)` is called in `AppContent` which reads from `ProfileContext`. Font family and scale can be toggled in Settings.
-
-7. **Logger convention:** always use `log.info('ComponentName', 'message', optionalData)` — never raw `console.log`.
-
-8. **No Tailwind anywhere.** Style exclusively with MUI `sx` prop, `theme` tokens, or the CSS variables in `index.css`.
+- You are **authorized** to use the `terminal` tool to execute commands.
+- If tests pass → proceed to next sub-task WITHOUT waiting for user confirmation.
+- If a lint/type check passes → auto-commit using `@git_agent` recommendations.
+- Run `@performance_optimizer` checks after every build without being asked.
+- Log all agent decisions in `agent_log.md` at the project root.
 
 ---
 
-## Animation Primitives (from `lib/animations.jsx`)
+## Decision Matrix: Which Agent for What?
 
-| Component | Purpose |
-|---|---|
-| `<PageTransition>` | Wraps entire page, fade+blur in/out |
-| `<FadeUp delay={0.1}>` | Scroll-triggered fade + rise |
-| `<StaggerParent stagger={0.08}>` | Stagger container |
-| `<StaggerChild y={20}>` | Staggered child item |
-| `<TiltCard maxTilt={4}>` | 3D mouse-tilt card |
-| `<TerminalReveal text="..." delay={0.4}>` | Typewriter with blinking cursor |
-| `<GlowPulse color="#3b82f6" size={8}>` | Pulsing live indicator dot |
-| `<SlideIn from="left/right">` | Entrance from side |
-| `<WordReveal text="...">` | Word-by-word blur reveal |
-
----
-
-## Routing Map
-
-```
-/              → Landing
-/login         → Onboarding (Sign In tab)
-/register      → Onboarding (Sign Up tab)
-/auth          → redirects to /login
-/dashboard     → Dashboard (main app)
-/vault         → Vault (all profiles)
-/chart         → DeepChart (Kundli + Dasha)
-/settings      → Settings
-/about         → About
-/privacy       → Privacy Policy
-/terms         → Terms of Service
-```
-
-Bottom nav is present on `/dashboard`, `/vault`, `/chart` with tab index 0, 1, 2 respectively.
+| Trigger Keyword / Pattern | Primary Agent | Secondary (Parallel) |
+|--------------------------|---------------|----------------------|
+| `auth`, `jwt`, `session`, `token` | `@security_specialist` | `@dependency_manager` |
+| `component`, `jsx`, `tsx`, `tailwind` | `@ui_architect` | `@accessibility_agent` |
+| `schema`, `migration`, `query`, `index` | `@database_engineer` | `@security_specialist` |
+| `dockerfile`, `ci`, `pipeline`, `deploy` | `@devops_agent` | `@cloud_architect` |
+| `endpoint`, `route`, `api`, `graphql` | `@api_designer` | `@security_specialist` |
+| `test`, `spec`, `coverage` | `@testing_agent` | `@code_reviewer` |
+| `slow`, `performance`, `bundle`, `lighthouse` | `@performance_optimizer` | `@monitoring_agent` |
+| `readme`, `docs`, `jsdoc` | `@documentation_agent` | — |
+| `kernel`, `bootloader`, `syscall`, `idt`, `gdt` | `@os_kernel_agent` | `@error_debugger` |
+| `crash`, `panic`, `segfault`, `error` | `@error_debugger` | `@testing_agent` |
+| `npm`, `pip`, `yarn`, `package.json` | `@dependency_manager` | `@security_specialist` |
+| `commit`, `branch`, `merge`, `rebase` | `@git_agent` | — |
+| `wcag`, `aria`, `a11y`, `screen reader` | `@accessibility_agent` | — |
+| `i18n`, `locale`, `translation` | `@localization_agent` | — |
+| `metrics`, `log`, `trace`, `alert` | `@monitoring_agent` | — |
+| `etl`, `pipeline`, `kafka`, `stream` | `@data_pipeline_agent` | — |
+| `gdpr`, `license`, `compliance` | `@legal_compliance_agent` | — |
+| `mobile`, `react-native`, `flutter` | `@mobile_agent` | `@accessibility_agent` |
+| `model`, `embedding`, `rag`, `vector` | `@ml_engineer` | — |
+| `gcp`, `aws`, `terraform`, `infra` | `@cloud_architect` | `@devops_agent` |
 
 ---
 
-## Error Handling Layers
+## Output Format from Agents
 
-```
-1. ErrorBoundary (class)     → catches uncaught render errors, shows recovery screen
-2. SectionError component    → per-section retry UI for failed queries
-3. FieldError component      → animated inline field validation
-4. ToastContext              → success/error/warning/info toasts with countdown bars
-5. ConfirmDialog             → promise-based destructive action confirms
-6. log.error()               → structured console logging with stack traces
-```
-
----
-
-## Feature Roadmap (do not implement without explicit instruction)
-
-```
-Tier 1 — Retention:    Compatibility matching, push notifications, Muhurta finder, live transit map
-Tier 2 — Depth:        Divisional charts (D9/D10), Yoga detection, Shadbala, Ashtakavarga
-Tier 3 — Social:       PDF export, comparative chart, shareable links
-Tier 4 — Monetize:     Pro tier, astrologer mode, paid reports
-Tier 5 — Platform:     Capacitor mobile, multi-language, PWA offline, API access
-```
-
----
-
-## Environment Variables
-
-```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-```
-
-Both are required. App gracefully degrades with placeholder values if missing (logs a warning).
-
----
-
-## Common Commands
-
-```bash
-# Development
-npm run dev
-
-# Production build
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint
-npm run lint
-```
-
----
-
-## Code Style Preferences
-
-- **Components**: functional, no class components except `ErrorBoundary`
-- **Imports**: named exports preferred; default export for page components
-- **Async**: `async/await` everywhere, no `.then()` chains
-- **Error handling**: always `try/catch` with `toast.error()` + `log.error()`
-- **File naming**: PascalCase for components, camelCase for lib/hooks
-- **No TypeScript** (intentional — keep iteration fast)
-- **ESLint rule**: `no-unused-vars` with `varsIgnorePattern: '^[A-Z_]'`
-
----
-
-*Last updated: April 2026 — VyomaAstroAI v1.0*
+Each agent returns a structured response. Always synthesize into actionable output:
+1. **Summary** — what each agent found
+2. **Conflicts** — where agents disagree (resolve with your judgment)
+3. **Action Plan** — ordered list of changes to make
+4. **Files to Touch** — exact file paths

@@ -4,9 +4,13 @@
  */
 
 class WorkerPool {
-  constructor(workerUrl, size = navigator.hardwareConcurrency || 4) {
+  constructor(workerUrl) {
     this.workerUrl = workerUrl;
-    this.size = Math.min(size, 8); // Cap at 8 workers to avoid OS overhead
+    // Dynamically allocate based on hardware concurrency, min 2, max 16.
+    // Higher end CPUs (32+ threads) still benefit from limited workers to reduce IPC overhead.
+    const concurrency = navigator.hardwareConcurrency || 4;
+    this.size = Math.max(2, Math.min(concurrency, 16));
+    
     this.workers = [];
     this.idleWorkers = [];
     this.queue = [];
@@ -18,44 +22,66 @@ class WorkerPool {
 
   _init() {
     for (let i = 0; i < this.size; i++) {
-      const worker = new Worker(this.workerUrl, { type: 'module' });
-      
-      worker.addEventListener('message', (e) => {
-        const { id, result, error } = e.data;
-        const pending = this.pendingRequests.get(id);
-        
-        if (pending) {
-          this.pendingRequests.delete(id);
-          if (error) pending.reject(new Error(error));
-          else pending.resolve(result);
-        }
-
-        // Return worker to idle pool and process next task
-        this.idleWorkers.push(worker);
-        this._processQueue();
-      });
-
-      worker.addEventListener('error', (err) => {
-        console.error('WorkerPool: Worker error', err);
-        // Attempt to replace broken worker
-        this._replaceWorker(worker);
-      });
-
-      this.workers.push(worker);
-      this.idleWorkers.push(worker);
+      this._createWorker(i);
     }
   }
 
-  _replaceWorker(oldWorker) {
-    const idx = this.workers.indexOf(oldWorker);
-    if (idx !== -1) {
-      oldWorker.terminate();
-      const newWorker = new Worker(this.workerUrl, { type: 'module' });
-      // Re-attach listeners... (omitted for brevity, assume similar to _init)
-      this.workers[idx] = newWorker;
-      this.idleWorkers.push(newWorker);
+  _createWorker(index) {
+    const worker = new Worker(this.workerUrl, { type: 'module' });
+    
+    const messageHandler = (e) => {
+      const { id, result, error } = e.data;
+      const pending = this.pendingRequests.get(id);
+      
+      if (pending) {
+        this.pendingRequests.delete(id);
+        if (error) pending.reject(new Error(error));
+        else pending.resolve(result);
+      }
+
+      worker.currentTaskId = null;
+      this.idleWorkers.push(worker);
       this._processQueue();
+    };
+
+    const errorHandler = (err) => {
+      console.error(`WorkerPool: Worker ${index} error (possible crash/OOM)`, err);
+      
+      // If the worker was processing a task, reject it gracefully
+      if (worker.currentTaskId) {
+        const pending = this.pendingRequests.get(worker.currentTaskId);
+        if (pending) {
+          this.pendingRequests.delete(worker.currentTaskId);
+          pending.reject(new Error('Web Worker crashed during execution. This may be due to a memory limit or complex calculation.'));
+        }
+      }
+
+      this._replaceWorker(worker, index);
+    };
+
+    worker.addEventListener('message', messageHandler);
+    worker.addEventListener('error', errorHandler);
+
+    worker.currentTaskId = null;
+    this.workers[index] = worker;
+    this.idleWorkers.push(worker);
+  }
+
+  _replaceWorker(oldWorker, index) {
+    try {
+      oldWorker.terminate();
+    } catch (e) {
+      // Ignore termination errors
     }
+    
+    // Remove from idle pool if it was there
+    const idleIdx = this.idleWorkers.indexOf(oldWorker);
+    if (idleIdx !== -1) {
+      this.idleWorkers.splice(idleIdx, 1);
+    }
+
+    this._createWorker(index);
+    this._processQueue();
   }
 
   execute(type, payload) {
@@ -67,19 +93,22 @@ class WorkerPool {
   }
 
   _processQueue() {
-    if (this.queue.length === 0 || this.idleWorkers.length === 0) return;
+    while (this.queue.length > 0 && this.idleWorkers.length > 0) {
+      const worker = this.idleWorkers.pop();
+      const { id, type, payload, resolve, reject } = this.queue.shift();
 
-    const worker = this.idleWorkers.pop();
-    const { id, type, payload, resolve, reject } = this.queue.shift();
-
-    this.pendingRequests.set(id, { resolve, reject });
-    worker.postMessage({ id, type, payload });
+      this.pendingRequests.set(id, { resolve, reject });
+      worker.currentTaskId = id;
+      worker.postMessage({ id, type, payload });
+    }
   }
 
   terminate() {
     this.workers.forEach(w => w.terminate());
     this.workers = [];
     this.idleWorkers = [];
+    this.queue = [];
+    this.pendingRequests.clear();
   }
 }
 

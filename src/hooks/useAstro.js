@@ -1,9 +1,9 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
 import { sendWorkerMessage } from '../lib/astroWorker';
 import { getCachedChart, setCachedChart, getCachedInsights, setCachedInsights } from '../lib/chartCache';
-import { calculateFullChartParallel } from '../lib/ParallelAstro';
 import { useCalculation } from '../lib/CalculationContext';
 
 export function useProfiles(userId) {
@@ -78,33 +78,27 @@ export async function getChartData(p, settings = {}) {
   return result;
 }
 
-export function useChartData(p) {
-  const { settings } = useProfile();
-  const { startCalculation, updateProgress, endCalculation } = useCalculation();
+export function useChartData(profile) {
+  const { activeProfile, settings } = useProfile();
+  const { astroDataMap, isCalculating, error, calculateAll } = useCalculation();
+  
+  const targetProfile = profile || activeProfile;
+  const data = targetProfile ? astroDataMap[targetProfile.id] : undefined;
 
-  return useQuery({
-    queryKey: ['chartData_v3', p?.id, settings.ayanamsaSystem, settings.houseSystem],
-    queryFn: async () => {
-      if (!p) return null;
-      
-      const cached = await getCachedChart(p.id);
-      if (cached) return cached;
+  // If we have a target profile but no data in context, trigger calculation
+  // This handles the "Compare" use case where secondary profiles might not be pre-calculated yet
+  useEffect(() => {
+    if (targetProfile && !data && !isCalculating) {
+      calculateAll(targetProfile, settings.ayanamsaSystem);
+    }
+  }, [targetProfile, data, isCalculating, calculateAll, settings.ayanamsaSystem]);
 
-      startCalculation();
-      try {
-        const result = await calculateFullChartParallel(p, settings.ayanamsaSystem, updateProgress);
-        await setCachedChart(p.id, result);
-        return result;
-      } catch (err) {
-        console.error('Parallel Calculation Error:', err);
-        throw err;
-      } finally {
-        endCalculation();
-      }
-    },
-    enabled: !!p,
-    staleTime: Infinity,
-  });
+  return {
+    data,
+    isLoading: isCalculating && !data,
+    isFetching: isCalculating,
+    error
+  };
 }
 
 export function useCompatibility(profileA, profileB) {
