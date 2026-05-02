@@ -1,6 +1,8 @@
 import { sendPoolTask } from './WorkerPool';
 import { parseBirthDateUTC } from './timezones';
-import { getCurrentDasha } from './astro/dasha';
+import { getCurrentDasha, getMahaDasha } from './astro/dasha';
+import { getPlanetaryPositions, getAscendant } from './astro/ephemeris';
+import { detectYogas } from './astro/yogas';
 
 /**
  * Orchestrates a parallelized calculation of a full Vedic chart.
@@ -12,6 +14,14 @@ export async function calculateFullChartParallel(profile, ayanamsaSystem, update
   );
 
   updateProgress(5, 'Initializing Celestial Engine...');
+
+  const isLowMemoryDevice = typeof navigator !== 'undefined' && (
+    (navigator.deviceMemory && navigator.deviceMemory <= 4) || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  );
+
+  if (isLowMemoryDevice) {
+    return await calculateMinimalChart(profile, ayanamsaSystem, updateProgress);
+  }
 
   // 1. Initial Positions & Ascendant (Base for all others)
   // We use CALC_CHART as a base because it returns positions and ascendant quickly
@@ -73,6 +83,55 @@ export async function calculateFullChartParallel(profile, ayanamsaSystem, update
   return final;
 }
 
-export async function calculateFullChartSafe(profile, ayanamsaSystem) {
-  return await sendPoolTask('CALC_CHART', { profile, ayanamsaSystem });
+export async function calculateMinimalChart(profile, ayanamsaSystem, updateProgress = () => {}) {
+  const birthUTC = parseBirthDateUTC(
+    profile.dob_date, profile.dob_time, profile.iana_timezone || 'Asia/Kolkata'
+  );
+
+  updateProgress(5, 'Computing core planetary positions...');
+  const positions = getPlanetaryPositions(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
+  const ascendant = getAscendant(birthUTC, profile.latitude, profile.longitude, ayanamsaSystem);
+  
+  updateProgress(15, 'Calculating dasha timeline...');
+  const moonLon = positions.Moon.longitude;
+  const dashaTimeline = getMahaDasha(moonLon, birthUTC);
+  const currentDasha = getCurrentDasha(dashaTimeline, new Date());
+
+  updateProgress(25, 'Applying lightweight chart fallback...');
+  const vargas = {
+    D1: {
+      positions,
+      ascendant,
+    }
+  };
+
+  const yogas = detectYogas(positions, ascendant.sign);
+
+  const ashtakavarga = {
+    Jupiter: { scores: new Array(12).fill(0) },
+    Saturn: { scores: new Array(12).fill(0) }
+  };
+
+  const final = {
+    positions,
+    ascendant,
+    birthDate: birthUTC.toISOString(),
+    ayanamsaUsed: ayanamsaSystem,
+    vargas,
+    yogas,
+    shadbala: [],
+    ashtakavarga,
+    dashaTimeline,
+    currentDasha,
+  };
+
+  return final;
+}
+
+export async function calculateFullChartSafe(profile, ayanamsaSystem, updateProgress) {
+  try {
+    return await sendPoolTask('CALC_CHART', { profile, ayanamsaSystem });
+  } catch {
+    return await calculateMinimalChart(profile, ayanamsaSystem, updateProgress);
+  }
 }

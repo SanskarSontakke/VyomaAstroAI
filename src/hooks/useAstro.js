@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useProfile } from '../lib/ProfileContext';
@@ -86,21 +85,11 @@ export async function getChartData(p, settings = {}) {
 }
 
 export function useChartData(profile) {
-  const { activeProfile, settings } = useProfile();
-  const { astroDataMap, isCalculating, error, calculateAll } = useCalculation();
+  const { activeProfile } = useProfile();
+  const { chartPool, isCalculating, error } = useCalculation();
   
   const targetProfile = profile || activeProfile;
-  const data = targetProfile ? astroDataMap[targetProfile.id] : undefined;
-
-  // If we have a target profile but no data in context, trigger calculation
-  // This handles the "Compare" use case where secondary profiles might not be pre-calculated yet
-  useEffect(() => {
-    if (targetProfile && !data && !isCalculating && !error) {
-      calculateAll(targetProfile, settings.ayanamsaSystem, settings.houseSystem).catch(err => {
-        console.error('Failed to calculate chart:', err);
-      });
-    }
-  }, [targetProfile, data, isCalculating, error, calculateAll, settings.ayanamsaSystem, settings.houseSystem]);
+  const data = targetProfile ? chartPool[targetProfile.id] : undefined;
 
   return {
     data,

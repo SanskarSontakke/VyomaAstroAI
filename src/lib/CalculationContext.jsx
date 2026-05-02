@@ -8,8 +8,13 @@ const CalculationContext = createContext(null);
 
 export const CalculationProvider = ({ children }) => {
   const { activeProfile, settings } = useProfile();
-  // Map of profileId -> astroData
-  const [astroDataMap, setAstroDataMap] = useState({});
+  // Centralized cache pool for all calculated data.
+  const [cachePool, setCachePool] = useState({
+    charts: {},
+    transits: null,
+    compatibility: {},
+    insights: {},
+  });
   const [transitData, setTransitData] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -57,7 +62,7 @@ export const CalculationProvider = ({ children }) => {
     if (!profile) return;
     
     // Check memory first
-    const existing = astroDataMap[profile.id];
+    const existing = cachePool.charts[profile.id];
     if (!force && existing && existing.ayanamsaUsed === ayanamsaSystem && existing.houseSystem === houseSystem) {
       return existing;
     }
@@ -74,7 +79,7 @@ export const CalculationProvider = ({ children }) => {
     if (!force) {
       const cached = await getCachedChart(profile, ayanamsaSystem, houseSystem);
       if (cached && cached.ayanamsaUsed === ayanamsaSystem && cached.houseSystem === houseSystem) {
-        setAstroDataMap(prev => ({ ...prev, [profile.id]: cached }));
+        setCachePool(prev => ({ ...prev, charts: { ...prev.charts, [profile.id]: cached } }));
         setIsCalculating(false);
         setProgress(100);
         setCurrentTask(`Loaded cached chart for ${profile.name}.`);
@@ -95,12 +100,12 @@ export const CalculationProvider = ({ children }) => {
       } catch (primaryError) {
         console.warn('Calculation failed in parallel mode, falling back to single-worker chart calculation.', primaryError);
         setCurrentTask('Retrying with safe chart calculation...');
-        result = await calculateFullChartSafe(profile, ayanamsaSystem);
+        result = await calculateFullChartSafe(profile, ayanamsaSystem, updateProgress);
       }
 
       const dataToStore = { ...result, profileId: profile.id, ayanamsaUsed: ayanamsaSystem, houseSystem };
       
-      setAstroDataMap(prev => ({ ...prev, [profile.id]: dataToStore }));
+      setCachePool(prev => ({ ...prev, charts: { ...prev.charts, [profile.id]: dataToStore } }));
       await setCachedChart(profile, ayanamsaSystem, houseSystem, dataToStore);
       
       setProgress(100);
@@ -115,7 +120,7 @@ export const CalculationProvider = ({ children }) => {
         setCurrentTask('');
       }, 500);
     }
-  }, [astroDataMap, updateProgress, isCalculating]);
+  }, [cachePool, updateProgress, isCalculating]);
 
   // Automatically trigger upfront calculation for active profile
   useEffect(() => {
@@ -127,14 +132,15 @@ export const CalculationProvider = ({ children }) => {
   }, [activeProfile, settings.ayanamsaSystem, settings.houseSystem, calculateAll]);
 
   const value = useMemo(() => ({
-    astroDataMap,
+    cachePool,
+    chartPool: cachePool.charts,
     transitData,
     isCalculating,
     progress,
     currentTask,
     error,
     calculateAll
-  }), [astroDataMap, transitData, isCalculating, progress, currentTask, error, calculateAll]);
+  }), [cachePool, transitData, isCalculating, progress, currentTask, error, calculateAll]);
 
   return (
     <CalculationContext.Provider value={value}>
