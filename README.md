@@ -1,56 +1,51 @@
-# Vyoma Astro AI — The Next Generation of Vedic Analytics
+# Vyoma Astro AI
 
-Vyoma is a high-fidelity Vedic astrology platform designed for modern observers, focusing on sub-degree accuracy, premium aesthetics, and user-centric data visualization.
+> A Vedic astrology platform built with React that visualizes birth charts, planetary transits, and auspicious timing calculations.
 
-## 🚀 Technology Stack
+## What it does
 
-- **Core**: React 19 + Vite 8
-- **Styling**: Tailwind CSS v4 (Modern Design Tokens, Glassmorphism)
-- **Animations**: Framer Motion (Fluid transitions, Staggered loads)
-- **Backend**: Supabase (Auth, PostgreSQL, Real-time sync)
-- **Calculations**: Custom Ephemeris Engine (based on Astronomia)
-- **Data Persistence**: TanStack Query (React Query) with LocalStorage Sync
-- **PDF Export**: jsPDF + html2canvas for high-quality reports
+Vyoma provides a set of interactive tools for Vedic astrology analysis. Users can store multiple birth charts, view natal and divisional charts (D1, D9, D10, etc.), track planetary transits over time, search for auspicious timing windows (muhurta), compare charts side-by-side, and export analysis as PDFs. The core calculations are powered by a custom ephemeris engine based on Astronomia.
 
-## 🌌 Key Features
+## Why I built it
 
-1.  **The Archive**: A secure vault for managing multiple planetary profiles (Identities).
-2.  **Natal Interpretation**: Comprehensive birth chart analysis using Divisional (Varga) charts (D1, D9, D10, etc.).
-3.  **Path of Time**: A temporal dasha timeline visualization for life-phase analysis.
-4.  **Muhurta Finder**: A proprietary calculation engine for isolating auspicious cosmic windows.
-5.  **Comparative Analysis**: Side-by-side chart comparison for relationship or event timing.
-6.  **Public Insights**: Secure, shareable chart links with privacy-conscious data scrubbing.
+To learn React component patterns, real-time state management with TanStack Query, and how to implement a complex calculation engine in the browser. Also wanted to build a usable tool for learning Vedic astrology concepts hands-on.
 
-## 🛠️ Development & Build
+## Tech stack
 
-### Setup
+- React 19 + Vite
+- Tailwind CSS (v4)
+- Framer Motion (animations)
+- Supabase (auth, database, real-time sync)
+- TanStack Query (data management)
+- Web Workers (background calculations)
+- jsPDF + html2canvas (PDF export)
+- Astronomia (ephemeris calculations)
+
+## Getting started
+
 ```bash
+git clone https://github.com/SanskarSontakke/VyomaAstroAI.git
+cd VyomaAstroAI
 npm install
-```
-
-### Development
-```bash
 npm run dev
 ```
 
-### Build & Preview
+For testing:
 ```bash
-npm run build
-npm run preview
+npm test           # run once
+npm run test:watch # watch mode
 ```
 
-### Testing
-```bash
-npm test
-```
+## How it works
 
-## 📐 Design Philosophy
+The app uses Web Workers to run ephemeris calculations (finding planetary positions at a given time) in the background without blocking the UI. Birth chart data is stored in Supabase and synced locally via TanStack Query. The UI renders SVG charts using canvas-like positioning to show planet positions around a circular zodiac wheel. Divisional charts (Vargas) are computed by mathematically transforming the base chart positions. Muhurta (timing) calculations brute-force check blocks of time to find windows meeting specific planetary criteria.
 
-Vyoma follows a **Dark-First, High-Contrast** aesthetic:
-- **Typography**: `Inter` for clarity, `Geist Mono` for technical data, and `Cinzel` for classical elegance.
-- **Color Palette**: Deep blacks (`#000000`), celestial blues, and amber accents.
-- **Interactions**: Every state change is animated to provide a tactile, high-end feel.
+Data is persisted to localStorage with Supabase keeping the authoritative copy for multi-device sync.
 
----
-**Architected by Sanskar Sontakke**
-*Vedic System Designer & Full-Stack Architect*
+## Results / status
+
+Working demo. Core features (birth chart visualization, natal analysis, transit tracking, muhurta search, PDF export) are functional. Component tests cover main UI pieces. Known limitation: muhurta calculations can be slow for long date ranges on lower-end devices.
+
+## License
+
+MIT © 2026 Sanskar Sontakke
